@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  image-compare-api:
+    image: michaelcarrillo/image-compare-api:latest
+    networks:
+      - traefik_public
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.imagecompare.rule=Host(`image-compare-wonder.frontierai.lat`)
+        - traefik.http.routers.imagecompare.entrypoints=websecure
+        - traefik.http.routers.imagecompare.tls.certresolver=le
+        - traefik.http.services.imagecompare.loadbalancer.server.port=8000
+
+networks:
+  traefik_public:
+    external: true
