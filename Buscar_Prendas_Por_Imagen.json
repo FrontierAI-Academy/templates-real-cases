@@ -1,0 +1,2637 @@
+{
+  "name": "Buscar_Prendas_Por_Imagen",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "0df0bd59-1cb1-4287-a56d-788fa36dcf7b",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        -5808,
+        3072
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "text": "Analiza la imagen proporcionada y define cuál de estos 3 tipos de prendas es: \n\nBATA, CAMISON, PIJAMA, NINGUNA\n\nRetorna únicamente el tipo de prenda, sin comentarios adicionales.\nLAS ÚNICAS PALABRAS QUE PUEDES RETORNAR ES: BATA, CAMISON, PIJAMA, NINGUNA\n\n- SIN TILDES, NI NADA ADICIONAL",
+        "imageUrls": "={{ $('Execute Workflow Trigger').item.json.query.imagen }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -4496,
+        800
+      ],
+      "id": "834fc6f4-c682-4fe0-8ea9-0406cd6414e6",
+      "name": "OpenAI",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "openAiApi": {
+          "id": "xq0x5P93E0JAkiA4",
+          "name": "OpenAi account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appvpDmjuZGmwq6yG",
+          "mode": "list",
+          "cachedResultName": "Tienda de Ropa",
+          "cachedResultUrl": "https://airtable.com/appvpDmjuZGmwq6yG"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblhYzksJZf2Um65c",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appvpDmjuZGmwq6yG/tblhYzksJZf2Um65c"
+        },
+        "filterByFormula": "={Tipo de prenda} = '{{ $json.content }}'",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -3968,
+        800
+      ],
+      "id": "beab3e7c-6d69-4d4e-99c8-480dacce735f",
+      "name": "Airtable",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "873nDGrDSlZCuKXX",
+          "name": "Airtable Personal Access Token account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "productos",
+        "include": "allOtherFields",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -3264,
+        800
+      ],
+      "id": "08467e2f-94a3-41bb-82d0-032371515450",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -2928,
+        800
+      ],
+      "id": "97303783-91ee-437f-9616-f0eac444d8ab",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n    // Accedemos directo al objeto productos\n    const producto = item.json.productos;\n\n    // Validamos que el campo Color exista\n    let rawColor = producto.Color;\n    if (!rawColor) {\n        return {\n            json: {\n                ...item.json,\n                parsedColors: [],\n                error: '❌ Campo Color no encontrado'\n            }\n        };\n    }\n\n    // Limpiar el string\n    const cleaned = rawColor\n        .replace(/\\n/g, '')               // elimina saltos de línea\n        .replace(/\"\"/g, '\"')              // corrige comillas dobles\n        .replace(/,\\s*]$/, ']')           // elimina coma final antes de cerrar array\n        .trim();\n\n    let parsedColors = [];\n    try {\n        parsedColors = JSON.parse(cleaned);\n    } catch (error) {\n        console.log(\"❌ Error al parsear:\", error.message);\n    }\n\n    // Retornamos el mismo objeto, con parsedColors incluido\n    return {\n        json: {\n            ...item.json,\n            productos: {\n                ...producto,\n                parsedColors\n            }\n        }\n    };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2064,
+        800
+      ],
+      "id": "f6dd4d81-1b6f-474a-92b9-28a886189222",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "97f72697-c71f-4570-af26-7fa0237447a3",
+              "leftValue": "={{ $json.Color }}",
+              "rightValue": "FALTA",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2368,
+        832
+      ],
+      "id": "bd10eeeb-8232-4da1-8d95-7c5af315a48c",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "DROP TABLE IF EXISTS variables_wonder_store;\n\nCREATE TABLE variables_wonder_store (\n    phone_number TEXT NOT NULL,\n    variable_name TEXT NOT NULL,\n    value TEXT,\n    PRIMARY KEY (phone_number, variable_name)\n);\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -5312,
+        1488
+      ],
+      "id": "a5cec604-af18-4d2e-8a3a-c748442f4963",
+      "name": "Create  Table variables_wonder_store",
+      "credentials": {
+        "postgres": {
+          "id": "h4CZJBN40XBMGWI9",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH upserted AS (\n  INSERT INTO variables_wonder_store (phone_number, variable_name, value)\n  VALUES \n    ('{{ $('Execute Workflow Trigger').item.json.phone_number }}', 'most_similar_item', ''),\n    ('{{ $('Execute Workflow Trigger').item.json.phone_number }}', 'greatest_value', '0'),\n    ('{{ $('Execute Workflow Trigger').item.json.phone_number }}', 'row_id', '0'),\n    ('{{ $('Execute Workflow Trigger').item.json.phone_number }}', 'item_color', '')\n  ON CONFLICT (phone_number, variable_name)\n  DO UPDATE SET value = EXCLUDED.value\n  RETURNING variable_name, value\n)\nSELECT string_agg(variable_name || '=' || value, ', ') AS combined_result\nFROM upserted;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -4976,
+        800
+      ],
+      "id": "9d6ea119-9fbd-4624-bf62-df66487550f6",
+      "name": "Create User Variables",
+      "credentials": {
+        "postgres": {
+          "id": "h4CZJBN40XBMGWI9",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT json_object_agg(variable_name, value) AS variables\nFROM variables_wonder_store\nWHERE phone_number = '{{ $('Execute Workflow Trigger').first().json.phone_number }}'\n  AND variable_name IN ('most_similar_item', 'greatest_value', 'row_id', 'item_color');",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -2144,
+        224
+      ],
+      "id": "3659e225-b7de-4906-8e32-4709746e124a",
+      "name": "Get Most Similar Item",
+      "credentials": {
+        "postgres": {
+          "id": "h4CZJBN40XBMGWI9",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE variables_wonder_store\nSET value = CASE variable_name\n    WHEN 'most_similar_item' THEN ''\n    WHEN 'greatest_value' THEN '0'\n    WHEN 'row_id' THEN ''\n    WHEN 'item_color' THEN ''\n    ELSE value\nEND\nWHERE phone_number = '{{ $('Execute Workflow Trigger').first().json.phone_number }}'\n  AND variable_name IN ('most_similar_item', 'greatest_value', 'row_id', 'item_color');",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -1904,
+        224
+      ],
+      "id": "2387972c-3acd-4c54-bedc-27f44af400ba",
+      "name": "Clean User Fields",
+      "credentials": {
+        "postgres": {
+          "id": "h4CZJBN40XBMGWI9",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        -2416,
+        224
+      ],
+      "id": "c18b277f-4192-4fc6-82e5-c7e3c8a616f3",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ac82de34-8c11-423e-a803-c44a9b7a0e75",
+              "name": "response",
+              "value": "=Estos son los modelos similares que se encontraron (se enviaron imágenes de los modelos y colores disponibles).\n\nInformación de la prenda enviada: \nNombre: {{ $('Edit Fields2').item.json.itemArray[0].json['Nombre de producto'] }}\nTallas con Stock Disponible Disponibles: {{ $('Edit Fields3').item.json.sizes }}\nPrecio en Soles: {{ $('Edit Fields2').item.json.itemArray[0].json['Precio (S/.)'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        768,
+        0
+      ],
+      "id": "6d981f7a-24e7-4267-b532-a76c9ad487c1",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "base": {
+          "__rl": true,
+          "value": "appvpDmjuZGmwq6yG",
+          "mode": "list",
+          "cachedResultName": "Tienda de Ropa",
+          "cachedResultUrl": "https://airtable.com/appvpDmjuZGmwq6yG"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblhYzksJZf2Um65c",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appvpDmjuZGmwq6yG/tblhYzksJZf2Um65c"
+        },
+        "id": "={{ $('Get Most Similar Item').item.json.variables.row_id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -1680,
+        224
+      ],
+      "id": "6807620a-0fae-42af-847c-6d6e4a8a0312",
+      "name": "Airtable1",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "873nDGrDSlZCuKXX",
+          "name": "Airtable Personal Access Token account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appvpDmjuZGmwq6yG",
+          "mode": "list",
+          "cachedResultName": "Tienda de Ropa",
+          "cachedResultUrl": "https://airtable.com/appvpDmjuZGmwq6yG"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblhYzksJZf2Um65c",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appvpDmjuZGmwq6yG/tblhYzksJZf2Um65c"
+        },
+        "filterByFormula": "={Nombre de producto} = '{{ $('Airtable1').item.json['Nombre de producto'] }}'",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -1136,
+        224
+      ],
+      "id": "42cd1d90-b850-4e43-b2e2-60005c6b88de",
+      "name": "Airtable2",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "873nDGrDSlZCuKXX",
+          "name": "Airtable Personal Access Token account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Bn3l5fEsVm2WQNMg",
+          "mode": "list",
+          "cachedResultName": "Set Most Similar Item"
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
+      "position": [
+        -1024,
+        800
+      ],
+      "id": "429d7f20-4027-4a97-a8e0-11e557a35d61",
+      "name": "Execute Workflow"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ab62932f-dda3-411a-a4bc-b89b919ee93f",
+              "name": "items",
+              "value": "={{ $json.items }}",
+              "type": "array"
+            },
+            {
+              "id": "24d7a53d-2646-4c6f-a5d9-c32b39dbdd5c",
+              "name": "item_to_compare",
+              "value": "={{ $json.image }}",
+              "type": "string"
+            },
+            {
+              "id": "8009c348-047b-4657-9598-0d06bd49affe",
+              "name": "phone_number",
+              "value": "={{ $('Execute Workflow Trigger').item.json.phone_number }}",
+              "type": "string"
+            },
+            {
+              "id": "83844ef9-a6da-410b-8a91-1d4753f1d2d0",
+              "name": "row_id",
+              "value": "={{ $('Loop Over Items').item.json.productos.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1376,
+        800
+      ],
+      "id": "d775082a-52d9-47f4-97c1-acd1ba8ef9a4",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        -704,
+        800
+      ],
+      "id": "71b71847-caf3-426f-b92f-40fd0c1b6206",
+      "name": "Limit1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6c2d029a-f165-46eb-8069-55a73af46e29",
+              "name": "itemArray",
+              "value": "={{ $('Airtable2').all() }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -560,
+        224
+      ],
+      "id": "69b68357-366f-4306-ae51-9c95aca3a440",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        -816,
+        224
+      ],
+      "id": "c2668815-fc8a-4d2a-afd9-121fb7915fed",
+      "name": "Limit2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4b9891ea-b770-4604-a263-dfa6ed0bf8bb",
+              "name": "sizes",
+              "value": "={{ $json.itemArray.filter(i => i.json.Stock > 0).map(i => i.json.Talla).join(',') }}",
+              "type": "string"
+            },
+            {
+              "id": "5a450a83-697f-40cf-95d3-3da1c706b060",
+              "name": "itemImages",
+              "value": "={{ $('Code2').item.json.parsedColors }}",
+              "type": "array"
+            },
+            {
+              "id": "ba763817-0194-4be3-b4e8-a46daebdca3b",
+              "name": "colors",
+              "value": "={{ $('Code2').item.json.parsedColors.map(item => item.color).join() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -320,
+        224
+      ],
+      "id": "e7400eea-6fef-48d7-984f-1b21421e090c",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n    let rawColor = item.json.Color;\n\n    // Limpiar el string\n    const cleaned = rawColor\n        .replace(/\\n/g, '')               // elimina saltos de línea\n        .replace(/\"\"/g, '\"')              // corrige comillas dobles\n        .replace(/,\\s*]$/, ']')           // elimina coma final antes de cerrar array\n        .trim();\n\n    let parsedColors = [];\n    try {\n        parsedColors = JSON.parse(cleaned);\n    } catch (error) {\n        console.log(\"❌ Error al parsear:\", error.message);\n    }\n\n    return {\n        json: {\n            ...item.json,\n            parsedColors\n        }\n    };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1440,
+        224
+      ],
+      "id": "1c361092-7969-4508-8b99-65a612a49ceb",
+      "name": "Code2"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "itemImages",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        224
+      ],
+      "id": "7cfcd297-d9a7-4882-8352-2ea559e99e49",
+      "name": "Split Out1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c74a3f9d-4ffa-4d95-b080-b7e2f96a6d7a",
+              "name": "response",
+              "value": "Tuvimos un problema al recibir la imagen, puedes volver a enviárnosla por favor?",
+              "type": "string"
+            },
+            {
+              "id": "6c4f62ed-056a-4912-9854-85a7f24907a8",
+              "name": "ia_url",
+              "value": "={{ $('Execute Workflow Trigger').item.json.query.imagen }}",
+              "type": "string"
+            },
+            {
+              "id": "b5a51aec-9813-41ea-8db3-21acda04bbe5",
+              "name": "recent_urls",
+              "value": "={{ \n  [\n    ...$json.chat_history\n      .filter(m => m.message.type === \"human\")\n      .flatMap(m => m.message.content.match(/https?:\\/\\/[^\\s]+/g) || []),\n    $('Execute Workflow Trigger').item.json.current_user_input.replace(/\"/g, \"'\")\n  ]\n}}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -4544,
+        1168
+      ],
+      "id": "cb37824c-1f62-4c46-8060-765c6c3fdfb8",
+      "name": "Error"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        192,
+        224
+      ],
+      "id": "4afb96a6-5101-4678-92a3-960bde398449",
+      "name": "Loop Over Items2"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        464,
+        0
+      ],
+      "id": "d3609926-de7f-4c20-a8c9-4c31fcd27d59",
+      "name": "Limit3"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -3744,
+        800
+      ],
+      "id": "e5c99e96-9c04-4743-8b2a-87b104918fdb",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Verificar si 'data' existe en el item\nif (items.length === 0 || !items[0].json.data) {\n    return [{ json: { message: 'No se encontró el campo \"data\" en los items.' } }];\n}\n\n// Extraer los productos de la propiedad 'data'\nconst productNamesList = items[0].json.data;\n\n// Crear un conjunto para almacenar productos únicos por nombre\nconst uniqueProductNames = new Set();\n\n// Filtrar solo los productos únicos por nombre y retornar el item completo\nconst uniqueProducts = productNamesList.filter(item => {\n    const productName = item['Nombre de producto']; // Accedemos al nombre del producto\n\n    if (!uniqueProductNames.has(productName)) {\n        uniqueProductNames.add(productName); // Agregar al conjunto si no está presente\n        return true; // Retornar el item completo si es único\n    }\n    return false; // No retornar si ya está en el conjunto\n});\n\n// Mostrar los productos únicos para depuración\nconsole.log('Productos únicos:', uniqueProducts);\n\n// Retornar los productos únicos englobados en un solo objeto\nreturn [{\n    json: {\n        productos: uniqueProducts // Englobar los productos únicos dentro de la propiedad 'productos'\n    }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3520,
+        800
+      ],
+      "id": "5a21d27a-e37e-4b07-b236-6589641bdb4a",
+      "name": "Code3"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validación de entrada\nif (items.length === 0 || !items[0].json.ia_url || !items[0].json.recent_urls) {\n\treturn [{\n\t\tjson: {\n\t\t\terror: 'Faltan los campos \"ia_url\" o \"recent_urls\".'\n\t\t}\n\t}];\n}\n\n// Función para calcular similitud (distancia de Levenshtein normalizada)\nfunction similarity(a, b) {\n\tconst lengthA = a.length;\n\tconst lengthB = b.length;\n\tconst dp = Array.from({ length: lengthA + 1 }, () => Array(lengthB + 1).fill(0));\n\n\tfor (let i = 0; i <= lengthA; i++) dp[i][0] = i;\n\tfor (let j = 0; j <= lengthB; j++) dp[0][j] = j;\n\n\tfor (let i = 1; i <= lengthA; i++) {\n\t\tfor (let j = 1; j <= lengthB; j++) {\n\t\t\tconst cost = a[i - 1] === b[j - 1] ? 0 : 1;\n\t\t\tdp[i][j] = Math.min(\n\t\t\t\tdp[i - 1][j] + 1,\n\t\t\t\tdp[i][j - 1] + 1,\n\t\t\t\tdp[i - 1][j - 1] + cost\n\t\t\t);\n\t\t}\n\t}\n\n\tconst distance = dp[lengthA][lengthB];\n\tconst maxLen = Math.max(lengthA, lengthB);\n\treturn 1 - distance / maxLen; // Similitud entre 0 y 1\n}\n\n// Extraer los datos\nconst aiUrl = items[0].json.ia_url;\nconst recentUrls = items[0].json.recent_urls;\n\nlet bestMatch = null;\nlet highestScore = 0;\n\n// Comparar cada URL reciente con la generada por la IA\nfor (const url of recentUrls) {\n\tconst score = similarity(aiUrl, url);\n\tif (score > highestScore) {\n\t\thighestScore = score;\n\t\tbestMatch = url;\n\t}\n}\n\n// Resultado final\nreturn [{\n\tjson: {\n\t\toriginal_url: aiUrl,\n\t\tbest_match_url: bestMatch,\n\t\tsimilarity_score: highestScore\n\t}\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4304,
+        1168
+      ],
+      "id": "42beb79d-28a2-40c9-9e21-3b9b20c3979e",
+      "name": "Code4"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT *\nFROM chat_histories_wonder\nWHERE session_id = '{{ $(\"Execute Workflow Trigger\").item.json.phone_number }}'\nORDER BY id DESC\nLIMIT 10;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -4960,
+        1168
+      ],
+      "id": "611a0b45-e820-4167-85ed-4fa54f58c307",
+      "name": "Postgres",
+      "credentials": {
+        "postgres": {
+          "id": "h4CZJBN40XBMGWI9",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "chat_history",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -4768,
+        1168
+      ],
+      "id": "662f2613-90b3-4ada-b33f-7059f4cc5ab8",
+      "name": "Aggregate1"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "text": "Analiza la imagen proporcionada y define cuál de estos 3 tipos de prendas es: \n\nBATA, CAMISON, PIJAMA, NINGUNA\n\nRetorna únicamente el tipo de prenda, sin comentarios adicionales.\nLAS ÚNICAS PALABRAS QUE PUEDES RETORNAR ES: BATA, CAMISON, PIJAMA, NINGUNA\n\n- SIN TILDES, NI NADA ADICIONAL",
+        "imageUrls": "={{ $json.best_match_url }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -4096,
+        1168
+      ],
+      "id": "419fb5ea-7faa-44b5-824a-a5e74db9a997",
+      "name": "OpenAI1",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "openAiApi": {
+          "id": "xq0x5P93E0JAkiA4",
+          "name": "OpenAi account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ce8b8fcd-6d27-4e60-836b-81cfa2d16cc8",
+              "name": "image",
+              "value": "={{ \n  $('Code4').isExecuted == true ? \n  $('Code4').item.json.best_match_url : $('Execute Workflow Trigger').item.json.query.imagen \n}}",
+              "type": "string"
+            },
+            {
+              "id": "3b2e12ab-1989-4816-b57a-c69f32cb38eb",
+              "name": "items",
+              "value": "={{ $json.productos.parsedColors }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1728,
+        800
+      ],
+      "id": "0729011f-b3da-465f-9dc2-94fa1ce985db",
+      "name": "Working Image"
+    },
+    {
+      "parameters": {
+        "content": "### Se filtra solo las tallas que tengan Stock\nSi la talla existe, pero su stock es 0 entonces no se mostrará"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -608,
+        32
+      ],
+      "typeVersion": 1,
+      "id": "c255d9ce-afae-46b0-be54-7e4e8d9a729f",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.imagen }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        528,
+        240
+      ],
+      "id": "62dc0aa5-d13f-4798-b3e5-cc3dc37d2c99",
+      "name": "Download Image"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Set Chatwoot Data').first().json.chatwoot_host }}/api/v1/accounts/{{ $('Set Chatwoot Data').first().json.chatwoot_account_number }}/conversations/{{ $('Set Chatwoot Data').first().json.conversation_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Set Chatwoot Data').first().json.chatwoot_api_access_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message_type",
+              "value": "outgoing"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "attachments[]",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "content",
+              "value": "=Color: {{ $json.color }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9016f002-159c-46af-941e-52d3afa36e9b",
+      "name": "Send Message to Client",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        768,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6a71ff8d-eb10-44f3-8ef9-4096d4008d13",
+              "name": "chatwoot_host",
+              "value": "={{ $json.chatwoot_host }}",
+              "type": "string"
+            },
+            {
+              "id": "106fefeb-2edc-49f5-b74b-61e0465ff93c",
+              "name": "chatwoot_account_number",
+              "value": "={{ $json.chatwoot_account_number }}",
+              "type": "string"
+            },
+            {
+              "id": "a97191c0-2ebb-4748-b2e1-339831c91b7d",
+              "name": "chatwoot_api_access_token",
+              "value": "={{ $json.chatwoot_api_access_token }}",
+              "type": "string"
+            },
+            {
+              "id": "e1cfe79b-7594-4bd2-8eee-f1486d4e69a9",
+              "name": "conversation_id",
+              "value": "={{ $json.conversation_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -5328,
+        800
+      ],
+      "id": "1011a047-1f6f-44c4-8d19-6185d1f9be2d",
+      "name": "Set Chatwoot Data"
+    },
+    {
+      "parameters": {
+        "content": "# V1: SE ENVÍAN TODAS LAS IMÁGENES",
+        "height": 100,
+        "width": 780
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -5888,
+        480
+      ],
+      "typeVersion": 1,
+      "id": "fa89e3c9-fa15-43c5-a949-9a0364f5731a",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "text": "Analiza la imagen proporcionada y define cuál de estos 3 tipos de prendas es: \n\nBATA, CAMISON, PIJAMA, NINGUNA\n\nRetorna únicamente el tipo de prenda, sin comentarios adicionales.\nLAS ÚNICAS PALABRAS QUE PUEDES RETORNAR ES: BATA, CAMISON, PIJAMA, NINGUNA\n\n- SIN TILDES, NI NADA ADICIONAL",
+        "imageUrls": "={{ $('Execute Workflow Trigger').item.json.query.imagen }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -4656,
+        3072
+      ],
+      "id": "84443250-98df-4abf-b406-e33ed3a165eb",
+      "name": "OpenAI2",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "openAiApi": {
+          "id": "xq0x5P93E0JAkiA4",
+          "name": "OpenAi account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appvpDmjuZGmwq6yG",
+          "mode": "list",
+          "cachedResultName": "Tienda de Ropa",
+          "cachedResultUrl": "https://airtable.com/appvpDmjuZGmwq6yG"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblhYzksJZf2Um65c",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appvpDmjuZGmwq6yG/tblhYzksJZf2Um65c"
+        },
+        "filterByFormula": "={Tipo de prenda} = '{{ $json.content }}'",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -4128,
+        3072
+      ],
+      "id": "6a5f8e41-ba51-46bf-a166-7ad3c90d6623",
+      "name": "Airtable3",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "873nDGrDSlZCuKXX",
+          "name": "Airtable Personal Access Token account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "productos",
+        "include": "allOtherFields",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -3424,
+        3072
+      ],
+      "id": "87b3a7a4-5dfc-48d3-b7b4-8330019a3813",
+      "name": "Split Out2"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -3088,
+        3072
+      ],
+      "id": "d5d630a9-8c89-4867-a8ce-0f16877edaf1",
+      "name": "Loop Over Items1"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n    // Accedemos directo al objeto productos\n    const producto = item.json.productos;\n\n    // Validamos que el campo Color exista\n    let rawColor = producto.Color;\n    if (!rawColor) {\n        return {\n            json: {\n                ...item.json,\n                parsedColors: [],\n                error: '❌ Campo Color no encontrado'\n            }\n        };\n    }\n\n    // Limpiar el string\n    const cleaned = rawColor\n        .replace(/\\n/g, '')               // elimina saltos de línea\n        .replace(/\"\"/g, '\"')              // corrige comillas dobles\n        .replace(/,\\s*]$/, ']')           // elimina coma final antes de cerrar array\n        .trim();\n\n    let parsedColors = [];\n    try {\n        parsedColors = JSON.parse(cleaned);\n    } catch (error) {\n        console.log(\"❌ Error al parsear:\", error.message);\n    }\n\n    // Retornamos el mismo objeto, con parsedColors incluido\n    return {\n        json: {\n            ...item.json,\n            productos: {\n                ...producto,\n                parsedColors\n            }\n        }\n    };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2224,
+        3072
+      ],
+      "id": "23254b7e-b83e-462c-89f0-6e1c4e6755ce",
+      "name": "Code5"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "97f72697-c71f-4570-af26-7fa0237447a3",
+              "leftValue": "={{ $json.Color }}",
+              "rightValue": "FALTA",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2528,
+        3088
+      ],
+      "id": "0b429ad3-da28-4f32-9af8-480f9696d16d",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH upserted AS (\n  INSERT INTO variables_wonder_store (phone_number, variable_name, value)\n  VALUES \n    ('{{ $('Execute Workflow Trigger').item.json.phone_number }}', 'most_similar_item', ''),\n    ('{{ $('Execute Workflow Trigger').item.json.phone_number }}', 'greatest_value', '0'),\n    ('{{ $('Execute Workflow Trigger').item.json.phone_number }}', 'row_id', '0'),\n    ('{{ $('Execute Workflow Trigger').item.json.phone_number }}', 'item_color', '')\n  ON CONFLICT (phone_number, variable_name)\n  DO UPDATE SET value = EXCLUDED.value\n  RETURNING variable_name, value\n)\nSELECT string_agg(variable_name || '=' || value, ', ') AS combined_result\nFROM upserted;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -5136,
+        3072
+      ],
+      "id": "c2940d89-5e8a-423f-9510-5759dfd56f99",
+      "name": "Create User Variables1",
+      "credentials": {
+        "postgres": {
+          "id": "h4CZJBN40XBMGWI9",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT json_object_agg(variable_name, value) AS variables\nFROM variables_wonder_store\nWHERE phone_number = '{{ $('Execute Workflow Trigger').first().json.phone_number }}'\n  AND variable_name IN ('most_similar_item', 'greatest_value', 'row_id', 'item_color');",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -2304,
+        2480
+      ],
+      "id": "34afb2e3-5989-438f-97fd-0c36321f71bf",
+      "name": "Get Most Similar Item1",
+      "credentials": {
+        "postgres": {
+          "id": "h4CZJBN40XBMGWI9",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE variables_wonder_store\nSET value = CASE variable_name\n    WHEN 'most_similar_item' THEN ''\n    WHEN 'greatest_value' THEN '0'\n    WHEN 'row_id' THEN ''\n    WHEN 'item_color' THEN ''\n    ELSE value\nEND\nWHERE phone_number = '{{ $('Execute Workflow Trigger').first().json.phone_number }}'\n  AND variable_name IN ('most_similar_item', 'greatest_value', 'row_id', 'item_color');",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -2064,
+        2480
+      ],
+      "id": "eec7ceba-c3b2-4df4-8474-b43f0b0e78e2",
+      "name": "Clean User Fields1",
+      "credentials": {
+        "postgres": {
+          "id": "h4CZJBN40XBMGWI9",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        -2576,
+        2480
+      ],
+      "id": "f284adb5-ff58-44dc-9175-0e2a87bd4452",
+      "name": "Limit4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ac82de34-8c11-423e-a803-c44a9b7a0e75",
+              "name": "response",
+              "value": "=Nombre: {{ $('Edit Fields6').item.json.itemArray[0].json['Nombre de producto'] }} color {{ $('Get Most Similar Item1').item.json.variables.item_color }}\nTallas con Stock Disponible Disponibles: {{ $('Edit Fields7').item.json.sizes }}\nPrecio en Soles: {{ $('Edit Fields6').item.json.itemArray[0].json['Precio (S/.)'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1024,
+        2480
+      ],
+      "id": "88268da0-cd26-4262-96e4-eb141bfabd30",
+      "name": "Edit Fields4"
+    },
+    {
+      "parameters": {
+        "base": {
+          "__rl": true,
+          "value": "appvpDmjuZGmwq6yG",
+          "mode": "list",
+          "cachedResultName": "Tienda de Ropa",
+          "cachedResultUrl": "https://airtable.com/appvpDmjuZGmwq6yG"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblhYzksJZf2Um65c",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appvpDmjuZGmwq6yG/tblhYzksJZf2Um65c"
+        },
+        "id": "={{ $('Get Most Similar Item1').item.json.variables.row_id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -1280,
+        2480
+      ],
+      "id": "18f07191-ac6d-4636-bdcd-8c2801763627",
+      "name": "Airtable4",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "873nDGrDSlZCuKXX",
+          "name": "Airtable Personal Access Token account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appvpDmjuZGmwq6yG",
+          "mode": "list",
+          "cachedResultName": "Tienda de Ropa",
+          "cachedResultUrl": "https://airtable.com/appvpDmjuZGmwq6yG"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblhYzksJZf2Um65c",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appvpDmjuZGmwq6yG/tblhYzksJZf2Um65c"
+        },
+        "filterByFormula": "={Nombre de producto} = '{{ $('Airtable4').item.json['Nombre de producto'] }}'",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -880,
+        2480
+      ],
+      "id": "0ad16aca-fb9c-4eab-9ae4-b727acb5e3a1",
+      "name": "Airtable5",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "873nDGrDSlZCuKXX",
+          "name": "Airtable Personal Access Token account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Bn3l5fEsVm2WQNMg",
+          "mode": "list",
+          "cachedResultName": "Set Most Similar Item"
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
+      "position": [
+        -1184,
+        3072
+      ],
+      "id": "7ac5e9a7-9f50-45d6-8a3f-9fd335f1dde5",
+      "name": "Execute Workflow1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ab62932f-dda3-411a-a4bc-b89b919ee93f",
+              "name": "items",
+              "value": "={{ $json.items }}",
+              "type": "array"
+            },
+            {
+              "id": "24d7a53d-2646-4c6f-a5d9-c32b39dbdd5c",
+              "name": "item_to_compare",
+              "value": "={{ $json.image }}",
+              "type": "string"
+            },
+            {
+              "id": "8009c348-047b-4657-9598-0d06bd49affe",
+              "name": "phone_number",
+              "value": "={{ $('Execute Workflow Trigger').item.json.phone_number }}",
+              "type": "string"
+            },
+            {
+              "id": "83844ef9-a6da-410b-8a91-1d4753f1d2d0",
+              "name": "row_id",
+              "value": "={{ $('Loop Over Items1').item.json.productos.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1536,
+        3072
+      ],
+      "id": "9355e949-cf5b-462d-8f67-8472773aa004",
+      "name": "Edit Fields5"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        -864,
+        3072
+      ],
+      "id": "e2e83c88-77bf-48b6-838e-a922abcc1d52",
+      "name": "Limit5"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6c2d029a-f165-46eb-8069-55a73af46e29",
+              "name": "itemArray",
+              "value": "={{ $('Airtable5').all() }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -496,
+        2480
+      ],
+      "id": "fc051e22-ed0c-49e1-a86c-9a239801af83",
+      "name": "Edit Fields6"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        -704,
+        2480
+      ],
+      "id": "3e8e0e04-1ec4-499e-8ad3-36c26d65b6c4",
+      "name": "Limit6"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4b9891ea-b770-4604-a263-dfa6ed0bf8bb",
+              "name": "sizes",
+              "value": "={{ $json.itemArray.filter(i => i.json.Stock > 0).map(i => i.json.Talla).join(',') }}",
+              "type": "string"
+            },
+            {
+              "id": "5a450a83-697f-40cf-95d3-3da1c706b060",
+              "name": "itemImages",
+              "value": "={{ $('Code6').item.json.parsedColors }}",
+              "type": "array"
+            },
+            {
+              "id": "ba763817-0194-4be3-b4e8-a46daebdca3b",
+              "name": "colors",
+              "value": "={{ $('Code6').item.json.parsedColors.map(item => item.color).join() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -304,
+        2480
+      ],
+      "id": "66e3f5ea-f531-4be0-83c9-270a5c4b0361",
+      "name": "Edit Fields7"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n    let rawColor = item.json.Color;\n\n    // Limpiar el string\n    const cleaned = rawColor\n        .replace(/\\n/g, '')               // elimina saltos de línea\n        .replace(/\"\"/g, '\"')              // corrige comillas dobles\n        .replace(/,\\s*]$/, ']')           // elimina coma final antes de cerrar array\n        .trim();\n\n    let parsedColors = [];\n    try {\n        parsedColors = JSON.parse(cleaned);\n    } catch (error) {\n        console.log(\"❌ Error al parsear:\", error.message);\n    }\n\n    return {\n        json: {\n            ...item.json,\n            parsedColors\n        }\n    };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1088,
+        2480
+      ],
+      "id": "4e34e265-12d4-4f76-8d2d-bb44662b71b8",
+      "name": "Code6"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c74a3f9d-4ffa-4d95-b080-b7e2f96a6d7a",
+              "name": "response",
+              "value": "Tuvimos un problema al recibir la imagen, puedes volver a enviárnosla por favor?",
+              "type": "string"
+            },
+            {
+              "id": "6c4f62ed-056a-4912-9854-85a7f24907a8",
+              "name": "ia_url",
+              "value": "={{ $('Execute Workflow Trigger').item.json.query.imagen }}",
+              "type": "string"
+            },
+            {
+              "id": "b5a51aec-9813-41ea-8db3-21acda04bbe5",
+              "name": "recent_urls",
+              "value": "={{ \n  [\n    ...$json.chat_history\n      .filter(m => m.message.type === \"human\")\n      .flatMap(m => m.message.content.match(/https?:\\/\\/[^\\s]+/g) || []),\n    $('Execute Workflow Trigger').item.json.current_user_input.replace(/\"/g, \"'\")\n  ]\n}}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -4704,
+        3424
+      ],
+      "id": "6a014ae3-81a0-4095-9f11-b632395c6bb1",
+      "name": "Error1"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -3904,
+        3072
+      ],
+      "id": "59435ad8-f63a-475d-a052-c4e58371581c",
+      "name": "Aggregate2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Verificar si 'data' existe en el item\nif (items.length === 0 || !items[0].json.data) {\n    return [{ json: { message: 'No se encontró el campo \"data\" en los items.' } }];\n}\n\n// Extraer los productos de la propiedad 'data'\nconst productNamesList = items[0].json.data;\n\n// Crear un conjunto para almacenar productos únicos por nombre\nconst uniqueProductNames = new Set();\n\n// Filtrar solo los productos únicos por nombre y retornar el item completo\nconst uniqueProducts = productNamesList.filter(item => {\n    const productName = item['Nombre de producto']; // Accedemos al nombre del producto\n\n    if (!uniqueProductNames.has(productName)) {\n        uniqueProductNames.add(productName); // Agregar al conjunto si no está presente\n        return true; // Retornar el item completo si es único\n    }\n    return false; // No retornar si ya está en el conjunto\n});\n\n// Mostrar los productos únicos para depuración\nconsole.log('Productos únicos:', uniqueProducts);\n\n// Retornar los productos únicos englobados en un solo objeto\nreturn [{\n    json: {\n        productos: uniqueProducts // Englobar los productos únicos dentro de la propiedad 'productos'\n    }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3680,
+        3072
+      ],
+      "id": "1ed60b1c-32ea-4601-ae9d-7f4c5de6162c",
+      "name": "Code7"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validación de entrada\nif (items.length === 0 || !items[0].json.ia_url || !items[0].json.recent_urls) {\n\treturn [{\n\t\tjson: {\n\t\t\terror: 'Faltan los campos \"ia_url\" o \"recent_urls\".'\n\t\t}\n\t}];\n}\n\n// Función para calcular similitud (distancia de Levenshtein normalizada)\nfunction similarity(a, b) {\n\tconst lengthA = a.length;\n\tconst lengthB = b.length;\n\tconst dp = Array.from({ length: lengthA + 1 }, () => Array(lengthB + 1).fill(0));\n\n\tfor (let i = 0; i <= lengthA; i++) dp[i][0] = i;\n\tfor (let j = 0; j <= lengthB; j++) dp[0][j] = j;\n\n\tfor (let i = 1; i <= lengthA; i++) {\n\t\tfor (let j = 1; j <= lengthB; j++) {\n\t\t\tconst cost = a[i - 1] === b[j - 1] ? 0 : 1;\n\t\t\tdp[i][j] = Math.min(\n\t\t\t\tdp[i - 1][j] + 1,\n\t\t\t\tdp[i][j - 1] + 1,\n\t\t\t\tdp[i - 1][j - 1] + cost\n\t\t\t);\n\t\t}\n\t}\n\n\tconst distance = dp[lengthA][lengthB];\n\tconst maxLen = Math.max(lengthA, lengthB);\n\treturn 1 - distance / maxLen; // Similitud entre 0 y 1\n}\n\n// Extraer los datos\nconst aiUrl = items[0].json.ia_url;\nconst recentUrls = items[0].json.recent_urls;\n\nlet bestMatch = null;\nlet highestScore = 0;\n\n// Comparar cada URL reciente con la generada por la IA\nfor (const url of recentUrls) {\n\tconst score = similarity(aiUrl, url);\n\tif (score > highestScore) {\n\t\thighestScore = score;\n\t\tbestMatch = url;\n\t}\n}\n\n// Resultado final\nreturn [{\n\tjson: {\n\t\toriginal_url: aiUrl,\n\t\tbest_match_url: bestMatch,\n\t\tsimilarity_score: highestScore\n\t}\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4464,
+        3424
+      ],
+      "id": "63c0755a-df6e-4e61-9166-67fd7582d872",
+      "name": "Code8"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT *\nFROM chat_histories_wonder\nWHERE session_id = '{{ $(\"Execute Workflow Trigger\").item.json.phone_number }}'\nORDER BY id DESC\nLIMIT 10;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -5120,
+        3424
+      ],
+      "id": "b5f3ae7a-933c-4dbf-b23c-c63d0326ab5d",
+      "name": "Postgres1",
+      "credentials": {
+        "postgres": {
+          "id": "h4CZJBN40XBMGWI9",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "chat_history",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -4928,
+        3424
+      ],
+      "id": "3f75a4c7-e4c7-404f-aff9-c6958bc4193c",
+      "name": "Aggregate3"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "text": "Analiza la imagen proporcionada y define cuál de estos 3 tipos de prendas es: \n\nBATA, CAMISON, PIJAMA, NINGUNA\n\nRetorna únicamente el tipo de prenda, sin comentarios adicionales.\nLAS ÚNICAS PALABRAS QUE PUEDES RETORNAR ES: BATA, CAMISON, PIJAMA, NINGUNA\n\n- SIN TILDES, NI NADA ADICIONAL",
+        "imageUrls": "={{ $json.best_match_url }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -4256,
+        3424
+      ],
+      "id": "3abe9f03-f290-417f-bab4-b5c817eaf731",
+      "name": "OpenAI3",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "openAiApi": {
+          "id": "xq0x5P93E0JAkiA4",
+          "name": "OpenAi account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ce8b8fcd-6d27-4e60-836b-81cfa2d16cc8",
+              "name": "image",
+              "value": "={{ \n  $('Code8').isExecuted == true ? \n  $('Code8').item.json.best_match_url : $('Execute Workflow Trigger').item.json.query.imagen \n}}",
+              "type": "string"
+            },
+            {
+              "id": "3b2e12ab-1989-4816-b57a-c69f32cb38eb",
+              "name": "items",
+              "value": "={{ $json.productos.parsedColors }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1888,
+        3072
+      ],
+      "id": "c7de9ac9-5d39-4b86-bc9d-6c9cae0caa19",
+      "name": "Working Image1"
+    },
+    {
+      "parameters": {
+        "content": "### Se filtra solo las tallas que tengan Stock\nSi la talla existe, pero su stock es 0 entonces no se mostrará",
+        "height": 112
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -768,
+        2208
+      ],
+      "typeVersion": 1,
+      "id": "6fd08da5-b99a-44e0-9bac-255b6d7e2a20",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Get Most Similar Item1').item.json.variables.most_similar_item }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        608,
+        2480
+      ],
+      "id": "f677705d-758a-45fb-81e8-d836331f2d08",
+      "name": "Download Image1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Set Chatwoot Data1').first().json.chatwoot_host }}/api/v1/accounts/{{ $('Set Chatwoot Data1').first().json.chatwoot_account_number }}/conversations/{{ $('Set Chatwoot Data1').first().json.conversation_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Set Chatwoot Data1').first().json.chatwoot_api_access_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message_type",
+              "value": "outgoing"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "attachments[]",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f48d5bd8-083e-4dda-8941-5772110ed0d8",
+      "name": "Send Message to Client1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        848,
+        2480
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6a71ff8d-eb10-44f3-8ef9-4096d4008d13",
+              "name": "chatwoot_host",
+              "value": "={{ $json.chatwoot_host }}",
+              "type": "string"
+            },
+            {
+              "id": "106fefeb-2edc-49f5-b74b-61e0465ff93c",
+              "name": "chatwoot_account_number",
+              "value": "={{ $json.chatwoot_account_number }}",
+              "type": "string"
+            },
+            {
+              "id": "a97191c0-2ebb-4748-b2e1-339831c91b7d",
+              "name": "chatwoot_api_access_token",
+              "value": "={{ $json.chatwoot_api_access_token }}",
+              "type": "string"
+            },
+            {
+              "id": "e1cfe79b-7594-4bd2-8eee-f1486d4e69a9",
+              "name": "conversation_id",
+              "value": "={{ $json.conversation_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -5488,
+        3072
+      ],
+      "id": "d3f1795f-96cb-4f5c-a9d3-f291cbde2782",
+      "name": "Set Chatwoot Data1"
+    },
+    {
+      "parameters": {
+        "content": "# V2: SOLO SE ENVÍA UNA IMAGEN Y SE VALIDA SI  EL ASESOR DE VENTAS HA RESPONDIDO ANTES",
+        "height": 180,
+        "width": 780
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -5856,
+        2672
+      ],
+      "typeVersion": 1,
+      "id": "fee569c7-0b3b-4ab2-8422-77710b4a2a12",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4e276f47-e6bc-4659-98cb-1f1874a12b5e",
+              "leftValue": "={{ $('Get Most Similar Item1').item.json.variables.greatest_value.toNumber() }}",
+              "rightValue": 0.7,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1808,
+        2480
+      ],
+      "id": "f498e35c-e3cc-43cc-9dfa-baf6b65db60a",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ac82de34-8c11-423e-a803-c44a9b7a0e75",
+              "name": "response",
+              "value": "=Ok, un momento, por favor, voy a buscar si aún tenemos stock de dicha prenda",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1376,
+        2688
+      ],
+      "id": "d8d09c1e-74d5-4b0b-a9c3-61c83000b9dd",
+      "name": "Edit Fields8"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Set Chatwoot Data1').first().json.chatwoot_host}}/api/v1/accounts/{{ $('Set Chatwoot Data1').first().json.chatwoot_account_number }}/conversations/{{ $('Set Chatwoot Data1').first().json.conversation_id }}/labels",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Set Chatwoot Data1').first().json.chatwoot_api_access_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"labels\": [\"desactivar-chatbot\"]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1600,
+        2688
+      ],
+      "id": "47607118-79b0-4c11-ad63-538f73c38508",
+      "name": "Agregar etiqueta de curso de recetas saludables"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Set Chatwoot Data1').first().json.chatwoot_host }}/api/v1/accounts/{{ $('Set Chatwoot Data1').first().json.chatwoot_account_number }}/conversations/{{ $('Set Chatwoot Data1').first().json.conversation_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Set Chatwoot Data1').first().json.chatwoot_api_access_token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -96,
+        2128
+      ],
+      "id": "0b3ddd74-acb9-4ea1-b956-c8058083b8d6",
+      "name": "Obtener Lista de conversaciones1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b4bf3239-5a88-4b5b-9df2-7b40049ada30",
+              "leftValue": "={{ $json.payload.slice(-1)[0]?.message_type === 1 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        128,
+        2128
+      ],
+      "id": "c03a61df-afed-4604-8a81-43a52fe199b3",
+      "name": "Personal Humano ha respondido?1"
+    },
+    {
+      "parameters": {
+        "content": "## Validación Humana",
+        "height": 360,
+        "width": 1080
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -160,
+        1968
+      ],
+      "typeVersion": 1,
+      "id": "a8b61510-9bb1-4207-836b-d8c8cd1d7700",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3e07518d-9acc-4da4-85e1-217a0d2c81b1",
+              "name": "response",
+              "value": "true",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        720,
+        2000
+      ],
+      "id": "fefd908b-9bd6-4af0-b42a-6b022bcef523",
+      "name": "No hacer nada ya que personal humano respondio"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO public.customer_message_status (phonenumber, sendmessage)\nVALUES ('{{ $('Execute Workflow Trigger').first().json.phone_number }}', FALSE)\nON CONFLICT (phonenumber)\nDO UPDATE SET sendmessage = FALSE;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        480,
+        2000
+      ],
+      "id": "215133b4-17c6-4b19-8047-4405021a5781",
+      "name": "Deshabilitar el envio de respuesta",
+      "credentials": {
+        "postgres": {
+          "id": "F4dXmsMau3ZNwBsp",
+          "name": "Postgres Chatwoot"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Chatwoot Data1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Postgres",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Working Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create User Variables": {
+      "main": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Most Similar Item": {
+      "main": [
+        [
+          {
+            "node": "Clean User Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Get Most Similar Item",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean User Fields": {
+      "main": [
+        [
+          {
+            "node": "Airtable1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable1": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable2": {
+      "main": [
+        [
+          {
+            "node": "Limit2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Execute Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Workflow": {
+      "main": [
+        [
+          {
+            "node": "Limit1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "Airtable2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Split Out1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items2": {
+      "main": [
+        [
+          {
+            "node": "Limit3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Download Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit3": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Code3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code3": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error": {
+      "main": [
+        [
+          {
+            "node": "Code4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres": {
+      "main": [
+        [
+          {
+            "node": "Aggregate1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate1": {
+      "main": [
+        [
+          {
+            "node": "Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code4": {
+      "main": [
+        [
+          {
+            "node": "OpenAI1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI1": {
+      "main": [
+        [
+          {
+            "node": "Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Working Image": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Image": {
+      "main": [
+        [
+          {
+            "node": "Send Message to Client",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Message to Client": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Chatwoot Data": {
+      "main": [
+        [
+          {
+            "node": "Create User Variables",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI2": {
+      "main": [
+        [
+          {
+            "node": "Airtable3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Postgres1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable3": {
+      "main": [
+        [
+          {
+            "node": "Aggregate2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out2": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [
+          {
+            "node": "Limit4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code5": {
+      "main": [
+        [
+          {
+            "node": "Working Image1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Code5",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create User Variables1": {
+      "main": [
+        [
+          {
+            "node": "OpenAI2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Most Similar Item1": {
+      "main": [
+        [
+          {
+            "node": "Clean User Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean User Fields1": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit4": {
+      "main": [
+        [
+          {
+            "node": "Get Most Similar Item1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable4": {
+      "main": [
+        [
+          {
+            "node": "Code6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable5": {
+      "main": [
+        [
+          {
+            "node": "Limit6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Workflow1": {
+      "main": [
+        [
+          {
+            "node": "Limit5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields5": {
+      "main": [
+        [
+          {
+            "node": "Execute Workflow1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit5": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields6": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit6": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields7": {
+      "main": [
+        [
+          {
+            "node": "Obtener Lista de conversaciones1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code6": {
+      "main": [
+        [
+          {
+            "node": "Airtable5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error1": {
+      "main": [
+        [
+          {
+            "node": "Code8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate2": {
+      "main": [
+        [
+          {
+            "node": "Code7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code7": {
+      "main": [
+        [
+          {
+            "node": "Split Out2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code8": {
+      "main": [
+        [
+          {
+            "node": "OpenAI3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate3": {
+      "main": [
+        [
+          {
+            "node": "Error1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI3": {
+      "main": [
+        [
+          {
+            "node": "Airtable3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Working Image1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Image1": {
+      "main": [
+        [
+          {
+            "node": "Send Message to Client1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Message to Client1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Chatwoot Data1": {
+      "main": [
+        [
+          {
+            "node": "Create User Variables1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Airtable4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Agregar etiqueta de curso de recetas saludables",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agregar etiqueta de curso de recetas saludables": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener Lista de conversaciones1": {
+      "main": [
+        [
+          {
+            "node": "Personal Humano ha respondido?1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Personal Humano ha respondido?1": {
+      "main": [
+        [
+          {
+            "node": "Deshabilitar el envio de respuesta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Download Image1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deshabilitar el envio de respuesta": {
+      "main": [
+        [
+          {
+            "node": "No hacer nada ya que personal humano respondio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "5b5d4a67-0c54-4e6a-a42f-4d93fbd96c1f",
+  "meta": {
+    "instanceId": "e90ea13b829bbed83cbf4787719624af4fdeea0feb562098b80751c67ed7fba9"
+  },
+  "id": "8jXuhjKPlAPvHM0v",
+  "tags": [
+    {
+      "createdAt": "2025-04-05T23:59:24.315Z",
+      "updatedAt": "2025-04-05T23:59:24.315Z",
+      "id": "oSbmS0ddcjD1K6VL",
+      "name": "Wonder - Ropa"
+    }
+  ]
+}

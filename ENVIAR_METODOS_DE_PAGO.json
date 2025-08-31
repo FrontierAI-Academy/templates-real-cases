@@ -1,0 +1,145 @@
+{
+  "name": "ENVIAR_METODOS_DE_PAGO",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "phone_number"
+            }
+          ]
+        }
+      },
+      "id": "c055762a-8fe7-4141-a639-df2372f30060",
+      "typeVersion": 1.1,
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        272,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://evolutionapiapp.frontierai.lat/message/sendMedia/Wonder Tienda",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "=718457DBC801-409A-9B64-D17012174523"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $json.phone_number }}"
+            },
+            {
+              "name": "mediatype",
+              "value": "image"
+            },
+            {
+              "name": "media",
+              "value": "https://miniobackapp.frontierai.lat/misarchivos/01909224-2e58-449e-80de-faac90b6a06b.jpg"
+            },
+            {
+              "name": "fileName",
+              "value": "image.png"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        544,
+        352
+      ],
+      "id": "76f47305-40df-44e5-8f91-3b777a654c23",
+      "name": "Mensaje3 - VIDEO",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cbc2b3c6-1544-4d56-9e2b-b284afbdce81",
+              "name": "response",
+              "value": "Se envió la imagen con los métodos de pago al cliente",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        768,
+        352
+      ],
+      "id": "b0f25ce9-3213-4c75-bacf-7c568907ce66",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "phone_number": "51920666718"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Mensaje3 - VIDEO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mensaje3 - VIDEO": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "48c027fb-60a8-4ed2-8ffd-efe798781870",
+  "meta": {
+    "instanceId": "e90ea13b829bbed83cbf4787719624af4fdeea0feb562098b80751c67ed7fba9"
+  },
+  "id": "P7sL9nMxtvgs2EsN",
+  "tags": [
+    {
+      "createdAt": "2025-04-05T23:59:24.315Z",
+      "updatedAt": "2025-04-05T23:59:24.315Z",
+      "id": "oSbmS0ddcjD1K6VL",
+      "name": "Wonder - Ropa"
+    }
+  ]
+}

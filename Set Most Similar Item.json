@@ -1,0 +1,438 @@
+{
+  "name": "Set Most Similar Item",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "c055762a-8fe7-4141-a639-df2372f30060",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        176,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "items",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        480,
+        352
+      ],
+      "id": "e56af3c3-8334-42f6-b667-dde48da35904",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "URL DE TU APP",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"image1\": \"{{ $('Execute Workflow Trigger').item.json.item_to_compare }}\",\n    \"image2\": \"{{ $json.imagen }}\"\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        368
+      ],
+      "id": "9ab9b7df-b040-496b-b4ba-99376366f7a8",
+      "name": "Compare Images",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "35e179c6-a75b-4b6e-a53f-b4731991fbf1",
+              "leftValue": "={{ $('Compare Images').item.json.final_score }}",
+              "rightValue": "={{ $('Get Greatest_value').item.json.value.toNumber() }}",
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2192,
+        368
+      ],
+      "id": "9a5ae9ab-c754-469b-aa68-a1eebb8547da",
+      "name": "Save Most Similar Item"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT value\nFROM variables_wonder_store\nWHERE phone_number = '{{ $('Execute Workflow Trigger').item.json.phone_number }}'\n  AND variable_name = 'greatest_value';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1600,
+        368
+      ],
+      "id": "fca8d84d-6f72-4df4-bdaf-987cdb8637a9",
+      "name": "Get Greatest_value",
+      "credentials": {
+        "postgres": {
+          "id": "h4CZJBN40XBMGWI9",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE variables_wonder_store\nSET value = '{{ $('Compare Images').item.json.final_score }}'\nWHERE phone_number = '{{ $('Execute Workflow Trigger').item.json.phone_number }}'\n  AND variable_name = 'greatest_value';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        2592,
+        464
+      ],
+      "id": "dde45c14-81e1-4d91-87b9-d230e28f7695",
+      "name": "Update Greatest Value",
+      "credentials": {
+        "postgres": {
+          "id": "h4CZJBN40XBMGWI9",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE variables_wonder_store\nSET value = '{{ $('Loop Over Items1').item.json.imagen }}'\nWHERE phone_number = '{{ $('Execute Workflow Trigger').item.json.phone_number }}'\n  AND variable_name = 'most_similar_item';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        2800,
+        464
+      ],
+      "id": "15ad1789-c4e3-42c5-aa7e-a790320747fe",
+      "name": "Update Most Similar Item",
+      "credentials": {
+        "postgres": {
+          "id": "h4CZJBN40XBMGWI9",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE variables_wonder_store\nSET value = '{{ $('Execute Workflow Trigger').item.json.row_id }}'\nWHERE phone_number = '{{ $('Execute Workflow Trigger').item.json.phone_number }}'\n  AND variable_name = 'row_id';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        3024,
+        464
+      ],
+      "id": "ac97ecd8-0c9e-4f20-9963-e9b6b3a55c1a",
+      "name": "Update Airtable Row ID",
+      "credentials": {
+        "postgres": {
+          "id": "h4CZJBN40XBMGWI9",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        768,
+        352
+      ],
+      "id": "1ebaaabd-f1ed-4609-8fdf-20f13a3a0c61",
+      "name": "Loop Over Items1"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE variables_wonder_store\nSET value = '{{ $('Loop Over Items1').item.json.color }}'\nWHERE phone_number = '{{ $('Execute Workflow Trigger').item.json.phone_number }}'\n  AND variable_name = 'item_color';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        3264,
+        464
+      ],
+      "id": "8ff51e94-5153-4feb-ad95-308b7e51436d",
+      "name": "Update Item Color",
+      "credentials": {
+        "postgres": {
+          "id": "h4CZJBN40XBMGWI9",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "text": "You are a visual AI expert specialized in comparing images of clothing items. Your task is to analyze two images and return a **number from 1 to 100**, indicating the probability that they represent the **same item**, or that **one image contains the same item shown in the other**, even if it's a screenshot or partial view.\n\n✅ Focus on:\n- Overall shape and cut of the garment (neckline, straps, length, lace, stitching, etc.)\n- Fabric texture, shine, and patterns\n- Color similarity (consider lighting differences, but value color match highly)\n- Screenshot indicators (like phone UI or low resolution) should not penalize the match if shape + color match\n\n⚖️ Scoring logic:\n- If both **shape AND color match closely**, return **100%**\n- If shape is a strong match but color varies slightly, return **90–99%**\n- If shape is similar but color is clearly different, return **70–89%**\n- If shape or detail is unclear or differs significantly, return **50–69%**\n- If both shape and color are different, return **1–49%**\n\n📌 Special rules:\n- Catalog screenshots or watermarked images should still be evaluated fairly\n- Ignore background, model pose, or camera angle\n- Focus **only on the garment itself**\n\n📤 Output:\nReturn **only a single number from 1 to 100**. No explanation.",
+        "imageUrls": "={{ $('Execute Workflow Trigger').item.json.item_to_compare }}, {{ $json.imagen }}",
+        "options": {
+          "maxTokens": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        848,
+        0
+      ],
+      "id": "7ced44ed-41f5-4d2d-9dca-06bac21c06bc",
+      "name": "OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "xq0x5P93E0JAkiA4",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "38830e14-b4e0-4639-86ff-8906b0f3916e",
+              "name": "similarity",
+              "value": "={{ $json.content.match(/\\d+/)[0] }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1072,
+        0
+      ],
+      "id": "faee7d68-a3e5-4355-bf2f-afd3983b782f",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "content": "## Comparación con IA",
+        "height": 288,
+        "width": 464
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        800,
+        -112
+      ],
+      "typeVersion": 1,
+      "id": "f37d84b2-be87-499d-a30d-1c3074370b17",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {
+    "OpenAI": [
+      {
+        "json": {
+          "content": "15"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compare Images": {
+      "main": [
+        [
+          {
+            "node": "Get Greatest_value",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Most Similar Item": {
+      "main": [
+        [
+          {
+            "node": "Update Greatest Value",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Greatest_value": {
+      "main": [
+        [
+          {
+            "node": "Save Most Similar Item",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Greatest Value": {
+      "main": [
+        [
+          {
+            "node": "Update Most Similar Item",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Most Similar Item": {
+      "main": [
+        [
+          {
+            "node": "Update Airtable Row ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Airtable Row ID": {
+      "main": [
+        [
+          {
+            "node": "Update Item Color",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Compare Images",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Item Color": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f311b97f-d09e-4057-b918-9c1eb3d3849d",
+  "meta": {
+    "templateId": "VMiAxXa3lCAizGB5f7dVZQSFfg3FtHkdTKvLuupqBls=",
+    "instanceId": "e90ea13b829bbed83cbf4787719624af4fdeea0feb562098b80751c67ed7fba9"
+  },
+  "id": "Bn3l5fEsVm2WQNMg",
+  "tags": [
+    {
+      "createdAt": "2025-04-05T23:59:24.315Z",
+      "updatedAt": "2025-04-05T23:59:24.315Z",
+      "id": "oSbmS0ddcjD1K6VL",
+      "name": "Wonder - Ropa"
+    }
+  ]
+}

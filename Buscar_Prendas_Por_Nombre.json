@@ -1,0 +1,388 @@
+{
+  "name": "Buscar_Prendas_Por_Nombre",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "c055762a-8fe7-4141-a639-df2372f30060",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        464,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appvpDmjuZGmwq6yG",
+          "mode": "list",
+          "cachedResultName": "Tienda de Ropa",
+          "cachedResultUrl": "https://airtable.com/appvpDmjuZGmwq6yG"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblhYzksJZf2Um65c",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appvpDmjuZGmwq6yG/tblhYzksJZf2Um65c"
+        },
+        "filterByFormula": "=AND(\n  SEARCH(\n    UPPER('{{ $json.message.content }}'),\n    UPPER({Nombre de producto})\n  ),\n  {Stock} > 0\n)",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1104,
+        320
+      ],
+      "id": "211246c4-dc5d-4e7e-9a46-7838ba8ac2d0",
+      "name": "Airtable",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "873nDGrDSlZCuKXX",
+          "name": "Airtable Personal Access Token account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Nombre de la prenda: {{ $json.query.nombre_prenda }}"
+            },
+            {
+              "content": "Analiza el nombre de la prenda proporcionada y define cuál de estos 4 tipos de prendas es: \n\nBATA, CAMISON, PIJAMA, VESTIDO, NINGUNA\n\nRetorna únicamente el tipo de prenda, sin comentarios adicionales.\nLAS ÚNICAS PALABRAS QUE PUEDES RETORNAR ES: BATA, CAMISON, PIJAMA,VESTIDO, NINGUNA\n\n- SIN TILDES, NI NADA ADICIONAL",
+              "role": "system"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        752,
+        320
+      ],
+      "id": "c8b415ef-004e-4b03-8d2c-f206ee207839",
+      "name": "OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "xq0x5P93E0JAkiA4",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Nombre de la prenda que desea el cliente: {{ $('Execute Workflow Trigger').item.json.query.nombre_prenda }}\nTalla de la prenda: {{ $('Execute Workflow Trigger').item.json.query.talla }}\nDatos adicionales que menciono el cliente sobre la prenda que desea: {{ $('Execute Workflow Trigger').item.json.query.detalles_adicionales }}\n\n\n\nLista de prendas disponibles en el catálogo:  {{ $json.data.toJsonString() }}",
+        "options": {
+          "systemMessage": "Eres un asistente que devuelve la prenda que quiere el cliente. Para ello recibirás una lista de prendas y después el nombre de la prenda que desea el cliente. Tienes que verificar la disponibilidad de la prenda de la talla, así como el color."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        2064,
+        320
+      ],
+      "id": "604b4a31-24b7-445d-94d4-63bf83dcfc2b",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.1,
+      "position": [
+        2000,
+        592
+      ],
+      "id": "7250627b-9201-4a24-aa76-b81281af338e",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "xq0x5P93E0JAkiA4",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Execute Workflow Trigger').item.json.phone_number }}",
+        "contextWindowLength": 1
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        2192,
+        592
+      ],
+      "id": "c15c5f1f-79b1-4311-9bd8-cc115d79976b",
+      "name": "Window Buffer Memory"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "include": "specifiedFields",
+        "fieldsToInclude": "Nombre de producto, Tipo de prenda, Talla,  Precio (S/.)",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1328,
+        320
+      ],
+      "id": "27dea693-711e-4362-942f-1cc01f3a58f5",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "014950fc-3cdb-4d73-9477-726a086b275c",
+              "name": "response",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2448,
+        320
+      ],
+      "id": "b96f5ab4-61d2-42a2-a78e-242eff389266",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ac82de34-8c11-423e-a803-c44a9b7a0e75",
+              "name": "response",
+              "value": "=Ok, un momento, por favor, voy a buscar si aún tenemos stock de dicha prenda",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2144,
+        48
+      ],
+      "id": "043fd805-5a85-413f-b7e6-966289a8bccf",
+      "name": "Edit Fields8"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Execute Workflow Trigger').first().json.chatwoot_host }}/api/v1/accounts/{{ $('Execute Workflow Trigger').first().json.chatwoot_account_number }}/conversations/{{ $('Execute Workflow Trigger').first().json.conversation_id }}/labels",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Execute Workflow Trigger').first().json.chatwoot_api_access_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"labels\": [\"desactivar-chatbot\"]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1920,
+        48
+      ],
+      "id": "b23659b8-1471-4b96-8802-f458ca3c0736",
+      "name": "Agregar etiqueta de curso de recetas saludables"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "babf3dab-bfd5-4a2c-98ad-40a2ad8c4d35",
+              "leftValue": "={{ $json.data }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "array",
+                "operation": "lengthEquals",
+                "rightType": "number"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1552,
+        320
+      ],
+      "id": "55cc7c5a-c68f-4a0c-ab8c-6a6680169e62",
+      "name": "If"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "OpenAI1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI1": {
+      "main": [
+        [
+          {
+            "node": "Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agregar etiqueta de curso de recetas saludables": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Agregar etiqueta de curso de recetas saludables",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "25ad0f55-55c5-4ec7-9c15-a28ded8ef0ed",
+  "meta": {
+    "templateId": "VMiAxXa3lCAizGB5f7dVZQSFfg3FtHkdTKvLuupqBls=",
+    "instanceId": "e90ea13b829bbed83cbf4787719624af4fdeea0feb562098b80751c67ed7fba9"
+  },
+  "id": "RYPrtES9GNyXNtQD",
+  "tags": [
+    {
+      "createdAt": "2025-04-05T23:59:24.315Z",
+      "updatedAt": "2025-04-05T23:59:24.315Z",
+      "id": "oSbmS0ddcjD1K6VL",
+      "name": "Wonder - Ropa"
+    }
+  ]
+}

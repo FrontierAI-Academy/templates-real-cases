@@ -1,0 +1,2664 @@
+{
+  "name": "OFICIAL WONDER_IA_AGENT - LIVE",
+  "nodes": [
+    {
+      "parameters": {
+        "amount": 45
+      },
+      "id": "c68d5772-62ee-4061-aff2-e5ef313511c6",
+      "name": "Wait",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -368,
+        400
+      ],
+      "webhookId": "ff23024b-1132-4d79-84bc-778bb5c0d61b"
+    },
+    {
+      "parameters": {},
+      "id": "ef1f1937-6a8d-470c-ac04-d988586c02a0",
+      "name": "No Operation, do nothing",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        288,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0a64daf5-e485-48da-b0c0-1537046870c6",
+              "name": "user_inputs",
+              "value": "={{ $('Get User Inputs').item.json.user_inputs.join(', ') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f90502a6-676b-462e-b45f-655c537adb30",
+      "name": "Edit Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        304,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "={{ $('Webhook').item.json.body.data.key.remoteJid.replace('@s.whatsapp.net', '') }}",
+        "messageData": "={{ $json.message_cleaned }}",
+        "tail": true
+      },
+      "id": "a3a8dc29-09bd-4d5c-9b59-4e93e9509851",
+      "name": "Add User Input",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        400
+      ],
+      "credentials": {
+        "redis": {
+          "id": "BYmwd4MtF4QdF7gV",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "user_inputs",
+        "key": "={{ $('Webhook').item.json.body.data.key.remoteJid.replace('@s.whatsapp.net', '') }}",
+        "options": {}
+      },
+      "id": "48fad0f8-ad03-48c6-946a-a7444bc748ac",
+      "name": "Get User Inputs",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -176,
+        400
+      ],
+      "credentials": {
+        "redis": {
+          "id": "BYmwd4MtF4QdF7gV",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "options": {}
+      },
+      "id": "dc446711-e5af-400a-8613-18e0a0f0a7d9",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        3504,
+        640
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "xq0x5P93E0JAkiA4",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Edit Fields').item.json.user_inputs }}",
+        "options": {
+          "systemMessage": "=# ROL\n\nActúa como una asesora de ventas para *Wonder*, una tienda de ropa en Perú especializada en pijamas y loungewear para mujeres. Tu función principal es *mostrar los modelos disponibles*, *responder preguntas frecuentes sobre tallas, colores, precios, materiales y disponibilidad*, y *guiar a la clienta durante todo el proceso de compra*, desde el primer interés hasta el pago y la coordinación del envío, tanto en Lima como en provincias.\n\nTu tono debe ser *amable, rápido, cercano y empático*, como una conversación por WhatsApp entre amigas. Puedes usar emojis y expresiones informales como “reina” o “belleza”, manteniendo siempre una comunicación clara, alegre y segura.\n\nEs importante que *no dejes preguntas sin responder* y que brindes *instrucciones claras para el pago y la entrega* cuando el pedido esté confirmado. Tu tarea es hacer que la experiencia de compra sea fluida, confiable y muy humana.\n\n\n# Especificaciones\n\nDebes seguir el siguiente flujo paso a paso para asistir correctamente a cada clienta:\n\n1. Cuando una clienta pregunte por una prenda, sigue una de estas 2 opciones:\n\n2. Si ha enviado una imagen de la prenda, activa la herramienta `Buscar_Prendas_Por_Imagen`.\n\n3. Si en lugar de una imagen ha indicado el nombre o modelo de la prenda, activa la herramienta `Buscar_Prendas_Por_Nombre`.\n\n4. Después de mostrar las prendas disponibles, pregúntale al usuario si le gustaría agendar su pedido.\n\n5. Si el cliente desea agendar su pedido, pregúntale a dónde desea que se le envié el pedido.\n\n5.1 Una vez el cliente te indiqué a donde se enviara su pedido, activa la herramienta `COTIZAR_ENVIO`.\n\n5.2 Una vez tengamos la cotización del envío, dale al cliente un resumen de todo su pedido pidiéndole que te lo confirme.\n\n6. Cuando el cliente te confirme el pedido, activa la herramienta 'ENVIAR_METODOS_DE_PAGO' para enviarle nuestros medios de pago para que pueda pagar, importante mencionar: *No hay cambios ni hay devoluciones por ser prenditas personales❤️*.\n\n7. Cuando el cliente te envíe una imagen del pago realizado, ósea, solo cuando la imagen sea un comprobante de pago, activa la herramienta `VERIFICAR_PAGO`.\n\n8. Finalmente, cuando el cliente te haya proporcionado el nombre, dni, celular y dirección/destino, menciona que el pedido se le enviará por Shalom y activa la herramienta `AGENDAR_ENVIO`.\n \n\n# Funciones\n\n- Buscar_Prendas_Por_Imagen: Ejecuta esta herramienta para buscar una prenda usando una imagen enviada por el cliente.\n- Buscar_Prendas_Por_Nombre: Ejecuta esta herramienta para buscar una prenda usando su nombre o tipo.\n- Consultar_Alternativas: Ejecuta esta herramienta cuando el cliente quiera saber si hay stock en otros colores o modelos de una prenda específica que ya se le mostró.\n- Si el cliente desea saber el precio del delivery, primero debe facilitarte la dirección de envío. Luego de ello puedes activar `COTIZAR_ENVIO`.\n- Si el cliente desea adquirir productos al por mayor, activa la herramienta 'COTIZAR_AL_POR_MAYOR'.\n- Solo si el cliente pide que se le envíe su pedido con Olva Courier, entonces activa la herramienta 'ENVIO_POR_OLVA_COURIER'.\n\n\n#Sobre el negocio\n- Hacemos envíos a Provincia y también por todo Lima.\n- El precio del delivery depende a donde se hará el envío del producto. En promedio es de 10 soles. \n\n\n- Datos necesarios para el envío:\n1. Nombre:\n2. DNI: \n3. Celular:\n4. Dirección/Destino:\n\n#FAQ\n- ¿Cómo puedo saber mi número de talla? : Referencia de Tallas:\n28 es talla S\n30 - 32 es talla M\n34 es talla L \n- ¿Tendrán un catálogo de sus prendas? Sí, este es el link a nuestro catálogo: https://wa.me/c/51986896795\n- cómo se maneja el tema del pago? Los pagos son por adelantado, previos al envío, se tiene que abonar en su totalidad.\n\n- Cuándo llegará mi pedido(si es a un distrito de Lima)? El rango de entrega para Lima es de 4pm a 9 pm. El tiempo de entrega a provincia es de 1 a 2 días. \n\n- número de WhatsApp del repartidor? El repartidor se comunicará con usted por WhatsApp. \n- Por donde se envían los pedidos a provincia? Solo enviamos los productos por: Shalom, Flores, Luren Express, Olva Courier, Cruz del sur. \n- Costo de envío a provincia? De 10 a 15 soles aproximadamente.\n Puedo venir a recoger la prenda a la tienda física? Claro, estas son las direcciones de nuestras tiendas para que puedas visitarnos: \n📍 Jr Gamarra 654 Tda 615 piso 6\n📍 Jr Gamarra 1167 Tda 132 Allca\n\n- Si el cliente pregunta por estas prendas específicamente, Classic Felpa o Pijama Classic , brindarle la siguiente información:\n\nClassic Felpa 🌸\nSiente la comodidad y suavidad de nuestras pijamas en material Felpa ☁️💕\n✨Felpa hipoalergénica\nPrecio: 70 soles \n✨Tallas: S M L \ncalidad A1 felpa premium\n\nPijama Classic 🌼 \nMaterial: seda francesa alta calidad \nTallas: S M L  Precio unitario: 70 soles 🌸\nCalidad A1  ❤️\n\nPor mayor: \n🌸 Desde 03 unidades — S/.68 \n🌸 Desde 06 unidades — S/.65 \n🌸 Desde 12 unidades — S/. 60\n\n\n\n#FECHA Y HORA ACTUAL\n{{ $json.currentDate }}\n\n# NOTES\n\n- Sigue estrictamente los pasos especificados en #Especificaciones.\n- Solo puedes ejecutar 1 tool una única vez por mensaje.\n- Para mostrar las prendas debes usar una estructura similar a esta: \nClaro, tenemos estas tallas disponibles:\n*Tallas disponibles*:\n*Precio*: \n\n# Restricciones\n- Sigue estrictamente los pasos especificados en #Especificaciones.\n- Solo puedes ejecutar 1 tool una única vez por mensaje.\n- *Máximo 3 `\\n\\n` por respuesta*. No agregues más, incluso si el mensaje es largo.\n- *No uses `\\n\\n` en frases cortas o listas*. Usa `\\n` simple en su lugar.\n- Usa `\\n\\n` *solo* para separar bloques grandes de texto o cuando finalices con una pregunta, imagen o url.\n- Si no tienes información de la pregunta que te hace el cliente, dile que lo vas a consultar con administración."
+        }
+      },
+      "id": "943b77c5-7790-4a94-9f67-ca1abee6065c",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        4000,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $('Webhook').item.json.body.data.key.remoteJid.replace('@s.whatsapp.net', '') }}"
+      },
+      "id": "e66f9c42-b04c-4e6e-84b1-b7c51709dedc",
+      "name": "delete prev inputs",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        512,
+        240
+      ],
+      "credentials": {
+        "redis": {
+          "id": "BYmwd4MtF4QdF7gV",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a2b9674d-d655-449b-9efe-7c8651b37117",
+              "leftValue": "={{  $json.user_inputs.last() }}",
+              "rightValue": "={{ $('Wait').item.json.message_cleaned }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "d34424a4-39cd-4759-8548-77f21f9d4e83",
+      "name": "user inputs exist?1",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        48,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function processItems(items) {\n    const MAX_MESSAGES = 3; // Máximo de mensajes permitidos\n    const MIN_LENGTH = 50; // Longitud mínima para considerar un fragmento como mensaje independiente\n\n    return items.map(item => {\n        const generatedText = item.json.output.trim(); // Limpia espacios innecesarios\n        let chunks = [generatedText];\n\n        // Normaliza saltos de línea y divide en fragmentos\n        if (generatedText.includes('\\n\\n')) {\n            chunks = generatedText.replace(/\\n{3,}/g, '\\n\\n').split('\\n\\n');\n        }\n\n        // Filtra fragmentos vacíos\n        chunks = chunks.filter(chunk => chunk.trim() !== '');\n\n        let processedChunks = [];\n        let messageCount = 0;\n        let buffer = \"\";\n\n        for (let chunk of chunks) {\n            chunk = chunk.trim();\n\n            // Permitir URLs e imágenes como excepción\n            if (chunk.match(/\\.(png|jpg|jpeg)$/i) || chunk.startsWith(\"http\")) {\n                processedChunks.push({ type: \"text\", content: chunk });\n                continue; // No afecta el límite de mensajes\n            }\n\n            // Si el fragmento es muy corto, agrégalo al buffer en lugar de separarlo\n            if (chunk.length < MIN_LENGTH && !chunk.endsWith(\"?\")) {\n                buffer += (buffer ? \" \" : \"\") + chunk;\n                continue;\n            }\n\n            // Si hay contenido en buffer, agrégalo al último mensaje\n            if (buffer) {\n                if (processedChunks.length > 0) {\n                    processedChunks[processedChunks.length - 1].content += \" \" + buffer;\n                } else {\n                    processedChunks.push({ type: \"text\", content: buffer });\n                }\n                buffer = \"\"; // Reiniciar buffer\n            }\n\n            // Si el fragmento termina en '?', forzar un nuevo mensaje\n            if (chunk.endsWith(\"?\")) {\n                processedChunks.push({ type: \"text\", content: chunk });\n                continue;\n            }\n\n            // Si aún no hemos alcanzado MAX_MESSAGES, agregamos como mensaje separado\n            if (messageCount < MAX_MESSAGES - 1) {\n                processedChunks.push({ type: \"text\", content: chunk });\n                messageCount++;\n            } else {\n                // Si ya se alcanzó MAX_MESSAGES, fusionamos el resto en el último mensaje\n                if (processedChunks.length > 0) {\n                    processedChunks[processedChunks.length - 1].content += \"\\n\\n\" + chunk;\n                } else {\n                    buffer += (buffer ? \"\\n\\n\" : \"\") + chunk;\n                }\n            }\n        }\n\n        // Si quedó algo en buffer, lo añadimos al último mensaje\n        if (buffer) {\n            if (processedChunks.length > 0) {\n                processedChunks[processedChunks.length - 1].content += \"\\n\\n\" + buffer;\n            } else {\n                processedChunks.push({ type: \"text\", content: buffer });\n            }\n        }\n\n        // Asegurar que el número total de mensajes sea máximo MAX_MESSAGES\n        while (processedChunks.length > MAX_MESSAGES) {\n            let extraChunk = processedChunks.pop();\n            processedChunks[processedChunks.length - 1].content += \"\\n\\n\" + extraChunk.content;\n        }\n\n        return {\n            json: {\n                processedOutput: processedChunks\n            }\n        };\n    });\n}\n\nreturn processItems(items);"
+      },
+      "id": "3ab45192-7a58-42ad-a173-5a84163f687c",
+      "name": "Agent Answer Splited",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4592,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "processedOutput",
+        "options": {}
+      },
+      "id": "f96c0f53-efb6-49f1-be19-b25b63bd3cd8",
+      "name": "Split Out",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        6416,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "0b51378d-1f10-4188-a333-20d41084618e",
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        6672,
+        304
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "95dc1625-3b07-446a-826e-6c6d910c1ad5",
+      "name": "No Operation, do nothing8",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        7072,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 4
+      },
+      "id": "db77c234-5ef9-4691-a015-df03466e7463",
+      "name": "Wait3",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        7456,
+        320
+      ],
+      "webhookId": "1faa92c5-3a34-4b72-a0ea-b2d5a2cedba5"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6f345424-242b-4967-b852-82673393f81b",
+              "leftValue": "={{ $('Webhook').item.json.body.data.messageType }}",
+              "rightValue": "conversation",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "98254d25-fd77-4c3e-9304-4403c9bffad8",
+      "name": "Is not text?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2656,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c4b3dcdb-1694-4072-bfc4-60e3f3fb1cdd",
+              "leftValue": "={{ $('Webhook').item.json.body.data.messageType }}",
+              "rightValue": "audioMessage",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a254c11d-5da0-4b2b-995e-593c88d8058b",
+      "name": "Is an Audio?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2208,
+        32
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "3b9741c7-c886-4a35-926d-9d798523edce",
+      "name": "Wait1",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -1968,
+        0
+      ],
+      "webhookId": "f727abe7-5c67-4bfd-9ee4-a1a06c3ed955"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/audio/transcriptions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "multipart/form-data"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "whatsapp_audio"
+            },
+            {
+              "name": "model",
+              "value": "whisper-1"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9d11c191-0d91-4408-9f96-da4ededee4d1",
+      "name": "Transcribe Audio With Open AI Whisper 1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1488,
+        0
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "xq0x5P93E0JAkiA4",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f9209fcc-ed3b-44ba-9f6a-91b8f1f7c438",
+              "name": "message_cleaned",
+              "value": "=User input: {{ $('Transcribe Audio With Open AI Whisper 1').item.json.text\n    .replaceAll('\\n', '')\n    .replaceAll('\\r', '')\n    .replaceAll('\"', '')\n    .replaceAll('¿', '')\n    .replaceAll(\"'\", '')\n    .replaceAll('$', '')\n    .trim() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3941142f-3d23-4056-935a-9f788e25db6b",
+      "name": "Clean Text1",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1296,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f9209fcc-ed3b-44ba-9f6a-91b8f1f7c438",
+              "name": "message_cleaned",
+              "value": "={{ $json.prev_message }}\n\nUser input: {{ $('Webhook').item.json.body.data.message.conversation.replaceAll('\\n', '')\n    .replaceAll('\\r', '')\n    .replaceAll('\"', '')\n    .replaceAll('¿', '')\n    .replaceAll(\"'\", '')\n    .replaceAll('$', '')\n    .trim() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6ef77a1e-31b1-437f-9101-98b43038c9ef",
+      "name": "Clean Text",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1296,
+        592
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "5dac65bc-b8b2-4511-a645-65ed76cc6eae",
+              "leftValue": "={{ $('Webhook').item.json.body.data.messageType }}",
+              "rightValue": "imageMessage",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1936,
+        304
+      ],
+      "id": "bf822eac-9e6e-4f9f-bed8-6dedf18c209c",
+      "name": "If4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "31aa7569-e14c-4740-8c0a-6e5088211797",
+              "name": "message_cleaned",
+              "value": "=User input:\nMensaje incluido en la imagen: {{ $('Webhook').item.json.body.data.message.imageMessage.caption }}\nURL de la imagen: {{ $('Webhook').item.json.body.data.message.mediaUrl }}\nDescripción de la imagen (generada internamente por OpenAI): {{ $json.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1376,
+        288
+      ],
+      "id": "c31f8ce1-5805-416b-a0c7-de6bb58ba128",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "text": "Describe la imagen de manera general y breve, máximo 5 palabras.",
+        "imageUrls": "={{ $('Webhook').item.json.body.data.message.mediaUrl }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -1600,
+        288
+      ],
+      "id": "230726cf-bc0c-4932-b7a3-76f875b7cd7e",
+      "name": "OpenAI",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "openAiApi": {
+          "id": "gd6d6OtpTW4ePgDf",
+          "name": "Wonder OPEN AI ACCOUNT"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "26fac2f1-6084-42bc-b4b4-18c3f77dbb7b",
+              "leftValue": "={{ $json.body.data.key.remoteJid }}",
+              "rightValue": "@g.us",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "f12c3e53-0623-49c5-b49d-38a408c69e50",
+              "leftValue": "={{ $json.body.data.key.fromMe }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -5040,
+        592
+      ],
+      "id": "241088fb-bd5c-4ca9-9928-c0ba4f9a417c",
+      "name": "If"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -4240,
+        848
+      ],
+      "id": "a180bf44-a8e0-46bf-817d-587a60e13d3e",
+      "name": "No Operation, do nothing1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "df3eb0c6-52fd-47fa-89cd-6b660a0dae42",
+              "leftValue": "={{ $json.result }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "19a73d5a-219b-4002-9f9c-79906d7d2588",
+      "name": "If1",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        5232,
+        320
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "0cb1346e-d879-42ca-96f6-3421c9e69d01",
+      "name": "No Operation, do nothing3",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        5680,
+        544
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO public.customer_message_status (phonenumber, sendmessage)\nVALUES ('{{ $('Webhook').item.json.body.data.key.remoteJid.replace('@s.whatsapp.net', '') }}', TRUE)\nON CONFLICT (phonenumber)\nDO UPDATE SET sendmessage = TRUE;",
+        "options": {}
+      },
+      "id": "1e33da1c-4146-42b3-8b0d-c9b5ec1fb545",
+      "name": "Postgres",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        5504,
+        544
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "h4CZJBN40XBMGWI9",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n    COALESCE(\n        (SELECT \n            CASE \n                WHEN sendmessage IS TRUE OR sendmessage IS NULL THEN TRUE\n                ELSE FALSE\n            END\n        FROM public.customer_message_status\n        WHERE phonenumber = '{{ $('Webhook').item.json.body.data.key.remoteJid.replace('@s.whatsapp.net', '') }}'), \n        TRUE \n    ) AS result;",
+        "options": {}
+      },
+      "id": "8fd8c929-a609-4b28-b55a-cc8c1fa34122",
+      "name": "Can Send Message?",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        4848,
+        352
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "h4CZJBN40XBMGWI9",
+          "name": "Postgres account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c8f80886-e1a6-4abf-89f7-d6879f3dad52",
+              "name": "processedOutput",
+              "value": "={{ $('Agent Answer Splited').item.json.processedOutput }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "45164d1b-6b8c-4cf8-8c57-b8a6b55de920",
+      "name": "Set processedOutput",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        6080,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Datos de Chatwoot').item.json.chatwoot_host }}/api/v1/accounts/{{ $('Datos de Chatwoot').item.json.chatwoot_account_number }}/conversations/{{ $json.payload[0].id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Datos de Chatwoot').item.json.chatwoot_api_access_token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3200,
+        560
+      ],
+      "id": "16900d2c-1ffb-40f0-870d-837b0345bbb9",
+      "name": "Obtener etiquetas actuales1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d2666f47-6f42-4b1b-9418-98332af6d5f4",
+              "leftValue": "={{ $json.meta.labels.includes('desactivar-chatbot') }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2976,
+        560
+      ],
+      "id": "35ac86cd-65e5-473c-b46d-b8846c157fca",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0cfc39a1-710c-4cf6-87a4-21b3cfee7138",
+              "name": "chatwoot_host",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "6741659d-8b76-4394-9ce6-82d9feabe98f",
+              "name": "chatwoot_account_number",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "9468e62a-fc7d-4aeb-a1ed-3bdc371370aa",
+              "name": "chatwoot_api_access_token",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "0c6194f8-f602-42bd-acb4-99522b1d493f",
+              "name": "evolution_host",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "99de7972-6528-4a66-acab-4d6b8f08c1ab",
+              "name": "evolution_container_name",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "3f4b4ebc-3221-4e67-b668-a95cbd5c9fcd",
+              "name": "evolution_container_access_token",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -3920,
+        560
+      ],
+      "id": "e88055af-6053-45ad-acbd-daee782f340e",
+      "name": "Datos de Chatwoot"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Webhook').item.json.body.data.message.mediaUrl }}",
+        "options": {
+          "allowUnauthorizedCerts": true,
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "whatsapp_audio"
+            }
+          }
+        }
+      },
+      "id": "1d163e15-5c38-4db8-b548-3092ebd635ca",
+      "name": "Download Audio File",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1744,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "CREATE TABLE public.customer_message_status (\n    phonenumber character varying(15) PRIMARY KEY,\n    sendmessage boolean NOT NULL\n);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        5088,
+        528
+      ],
+      "id": "b6d9cb0b-06a2-4e49-bb35-f3a1ae799a35",
+      "name": "Create customer_message_status",
+      "credentials": {
+        "postgres": {
+          "id": "h4CZJBN40XBMGWI9",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "Buscar_Prendas_Por_Imagen",
+        "description": "Llama esta tool para buscar una prenda por imagen. Se necesita la Url(s) de la(s) imagen(es), además de la talla de la prenda para poder activar este tool. Si no se tiene esos datos, pedirlos al cliente.",
+        "workflowId": {
+          "__rl": true,
+          "value": "8jXuhjKPlAPvHM0v",
+          "mode": "list",
+          "cachedResultName": "Buscar_Prendas_Por_Imagen"
+        },
+        "fields": {
+          "values": [
+            {
+              "name": "phone_number",
+              "stringValue": "={{ $('Webhook').item.json.body.data.key.remoteJid.replace('@s.whatsapp.net', '') }}"
+            },
+            {
+              "name": "current_user_input",
+              "stringValue": "={{ $('Edit Fields').item.json.user_inputs }}"
+            },
+            {
+              "name": "chatwoot_host",
+              "stringValue": "={{ $('Datos de Chatwoot').item.json.chatwoot_host }}"
+            },
+            {
+              "name": "chatwoot_account_number",
+              "stringValue": "={{ $('Datos de Chatwoot').item.json.chatwoot_account_number }}"
+            },
+            {
+              "name": "chatwoot_api_access_token",
+              "stringValue": "={{ $('Datos de Chatwoot').item.json.chatwoot_api_access_token }}"
+            },
+            {
+              "name": "conversation_id",
+              "stringValue": "={{ $('Get Conversation ID').item.json.payload[0].id }}"
+            }
+          ]
+        },
+        "specifyInputSchema": true,
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"imagen\": {\n      \"type\": \"string\",\n      \"description\": \"URL de la imagen de la prenda\"\n    }\n  },\n  \"required\": [\"imagen\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        4320,
+        752
+      ],
+      "id": "2938528c-249c-4b0e-a27e-6c8f5682cef9",
+      "name": "Buscar_Prendas_Por_Imagen"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "90c547e8-33e2-4aaa-adca-b9b6c523865d",
+              "leftValue": "={{ $('Webhook').item.json.body.data.contextInfo.quotedMessage }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "50fc881a-a0f8-4844-9c3b-74d1ec110f13",
+              "leftValue": "={{ $('Webhook').item.json.body.data.contextInfo.entryPointConversionSource }}",
+              "rightValue": "phone_number_hyperlink",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2368,
+        592
+      ],
+      "id": "0d00ad74-e25a-4a7e-bb96-fa11fd263932",
+      "name": "Reply Message?"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "574cbf51-b784-4d44-9c45-be9eb0925953",
+              "name": "prev_message",
+              "value": "=Quoted message: {{ $('Webhook').item.json.body.data.contextInfo.quotedMessage.imageMessage.caption }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2128,
+        768
+      ],
+      "id": "266a36aa-d1f3-495e-a650-3adb7ec10b10",
+      "name": "Set Prev Messages"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "92b5f2f9-7119-4919-9c33-4e3c8389c930",
+              "leftValue": "={{ $('Webhook').item.json.body.data.contextInfo.quotedMessage.toJsonString() }}",
+              "rightValue": "\"imageMessage\":",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2368,
+        864
+      ],
+      "id": "1a9bcc14-0664-4829-bcbd-78db5650a1e3",
+      "name": "Image Reply?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "92b5f2f9-7119-4919-9c33-4e3c8389c930",
+              "leftValue": "={{ $('Webhook').item.json.body.data.contextInfo.quotedMessage.toJsonString() }}",
+              "rightValue": "\"conversation\":",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2384,
+        1184
+      ],
+      "id": "813cdbf9-b113-402c-a3d6-32d21e7d462b",
+      "name": "Text Reply?"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "574cbf51-b784-4d44-9c45-be9eb0925953",
+              "name": "prev_message",
+              "value": "=Quoted message: {{ $('Webhook').item.json.body.data.contextInfo.quotedMessage.conversation }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2128,
+        992
+      ],
+      "id": "519fa68a-a4f5-4b08-b712-5a70735027aa",
+      "name": "Set Prev Messages1"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Datos de Chatwoot').item.json.chatwoot_host }}/api/v1/accounts/{{ $('Datos de Chatwoot').item.json.chatwoot_account_number }}/contacts/search?q={{ $('Webhook').item.json.body.data.key.remoteJid.replace('@s.whatsapp.net', '') }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Datos de Chatwoot').item.json.chatwoot_api_access_token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3696,
+        560
+      ],
+      "id": "06712fbe-672d-4bd9-b53f-bdcf239158d1",
+      "name": "Get Contact ID"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Datos de Chatwoot').item.json.chatwoot_host }}/api/v1/accounts/{{ $('Datos de Chatwoot').item.json.chatwoot_account_number }}/contacts/{{ $json.payload[0].id }}/conversations",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Datos de Chatwoot').item.json.chatwoot_api_access_token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3504,
+        560
+      ],
+      "id": "e2649f50-a00b-4739-ae76-c24b87e79fdd",
+      "name": "Get Conversation ID"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Datos de Chatwoot').item.json.evolution_host }}/message/sendText/{{ $('Datos de Chatwoot').item.json.evolution_container_name }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $('Datos de Chatwoot').item.json.evolution_container_access_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $('Webhook').item.json.body.data.key.remoteJid.replace('@s.whatsapp.net', '') }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ \n  $json.content\n    .replace(/\"/g, '\\\\\"')                 // escapa comillas dobles\n    .replace(/[¡¿]/g, '')                 // elimina ¡¿\n    .replace(/\\*+/g, '*')                 // cualquier grupo de * lo deja en uno\n}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        7056,
+        320
+      ],
+      "id": "acf93996-7e7b-4bf9-b134-c1c1955c9e48",
+      "name": "Send Text Message Evolution"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "=DB_{{ $('Webhook').item.json.body.data.key.remoteJid.replace('@s.whatsapp.net', '') }}",
+        "sessionTTL": 10,
+        "contextWindowLength": 30
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.4,
+      "position": [
+        3648,
+        704
+      ],
+      "id": "78dc0117-1c73-4dff-bd39-d0dfe32bd99f",
+      "name": "Redis Chat Memory",
+      "credentials": {
+        "redis": {
+          "id": "BYmwd4MtF4QdF7gV",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "VERIFICAR_PAGO",
+        "description": "Llama esta tool para verificar si el pago del usuario es válido.",
+        "workflowId": {
+          "__rl": true,
+          "value": "6OcjC6FHvFCSkMTB",
+          "mode": "list",
+          "cachedResultName": "My Sub-Workflow 1"
+        },
+        "fields": {
+          "values": [
+            {
+              "name": "phone_number",
+              "stringValue": "={{ $('Webhook').item.json.body.data.key.remoteJid.replace('@s.whatsapp.net', '') }}"
+            },
+            {
+              "name": "current_user_input",
+              "stringValue": "={{ $('Edit Fields').item.json.user_inputs }}"
+            }
+          ]
+        },
+        "specifyInputSchema": true,
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"url_pago\": {\n      \"type\": \"string\",\n      \"description\": \"URL del comprobante o enlace de pago.\"\n    },\n    \"precio_a_pagar\": {\n      \"type\": \"number\",\n      \"description\": \"Monto total que debe pagar.\" \n    }\n  },\n  \"required\": [\"url_pago\", \"precio_a_pagar\"]\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        4528,
+        720
+      ],
+      "id": "4814e710-3fb0-4cda-825d-1c1df33935a9",
+      "name": "VERIFICAR_PAGO"
+    },
+    {
+      "parameters": {
+        "name": "COTIZAR_ENVIO",
+        "description": "Llama esta tool para cotizar el envío a la dirección del cliente. ",
+        "workflowId": {
+          "__rl": true,
+          "value": "mrg0FfShmbskezFx",
+          "mode": "list",
+          "cachedResultName": "COTIZAR_ENVIO"
+        },
+        "fields": {
+          "values": [
+            {
+              "name": "phone_number",
+              "stringValue": "={{ $('Webhook').item.json.body.data.key.remoteJid.replace('@s.whatsapp.net', '') }}"
+            }
+          ]
+        },
+        "specifyInputSchema": true,
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"direccion\": {\n      \"type\": \"string\",\n      \"description\": \"Dirección de envío del pedido.\"\n    }\n  },\n  \"required\": [\"direccion\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        3920,
+        880
+      ],
+      "id": "0bfb52fb-a991-4e73-812a-6d53762541a0",
+      "name": "COTIZAR_ENVIO"
+    },
+    {
+      "parameters": {
+        "name": "AGENDAR_ENVIO",
+        "description": "Llama esta tool para  agendar el envío de la prenda del cliente.",
+        "workflowId": {
+          "__rl": true,
+          "value": "A4JqUBACiMhRnIgp",
+          "mode": "list",
+          "cachedResultName": "My Sub-Workflow 1"
+        },
+        "fields": {
+          "values": [
+            {
+              "name": "phone_number",
+              "stringValue": "={{ $('Webhook').item.json.body.data.key.remoteJid.replace('@s.whatsapp.net', '') }}"
+            }
+          ]
+        },
+        "specifyInputSchema": true,
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"nombre\": {\n      \"type\": \"string\",\n      \"description\": \"Nombre completo del cliente\"\n    },\n    \"dni\": {\n      \"type\": \"string\",\n      \"description\": \"Documento Nacional de Identidad del cliente\"\n    },\n    \"direccion_envio\": {\n      \"type\": \"string\",\n      \"description\": \"Dirección o destino donde se realizará el envío\"\n    },\n    \"descripcion_envio\": {\n      \"type\": \"string\",\n      \"description\": \"Descripción detallada del envío (ej. prenda, cantidad, características)\"\n    },\n    \"costo_envio\": {\n      \"type\": \"number\",\n      \"description\": \"Costo total del envío en moneda local\"\n    }\n  },\n  \"required\": [\n    \"nombre\",\n    \"dni\",\n    \"direccion_envio\",\n    \"descripcion_envio\",\n    \"costo_envio\"\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        4240,
+        880
+      ],
+      "id": "e1c28ace-fba5-457b-aedd-e70515449426",
+      "name": "AGENDAR_ENVIO"
+    },
+    {
+      "parameters": {
+        "options": {
+          "timezone": "America/Lima"
+        }
+      },
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 2,
+      "position": [
+        3472,
+        112
+      ],
+      "id": "19fe04d5-bb2b-4fc1-8fa8-1c7f9e054830",
+      "name": "Date & Time"
+    },
+    {
+      "parameters": {
+        "name": "COTIZAR_AL_POR_MAYOR",
+        "description": "Llama esta tool cuando el cliente desee comprar prendas al por mayor.",
+        "workflowId": {
+          "__rl": true,
+          "value": "Z8UWUrS1koFXcckd",
+          "mode": "list",
+          "cachedResultName": "COTIZAR_AL_POR_MAYOR"
+        },
+        "fields": {
+          "values": [
+            {
+              "name": "phone_number",
+              "stringValue": "={{ $('Webhook').item.json.body.data.key.remoteJid.replace('@s.whatsapp.net', '') }}"
+            },
+            {
+              "name": "chatwoot_host",
+              "stringValue": "={{ $('Datos de Chatwoot').item.json.chatwoot_host }}"
+            },
+            {
+              "name": "chatwoot_account_number",
+              "stringValue": "={{ $('Datos de Chatwoot').item.json.chatwoot_account_number }}"
+            },
+            {
+              "name": "chatwoot_api_access_token",
+              "stringValue": "={{ $('Datos de Chatwoot').item.json.chatwoot_api_access_token }}"
+            },
+            {
+              "name": "conversation_id",
+              "stringValue": "={{ $('Get Conversation ID').item.json.payload[0].id }}"
+            }
+          ]
+        },
+        "jsonSchemaExample": ""
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        4464,
+        864
+      ],
+      "id": "f386e618-3bcb-493f-b826-e4984817b44a",
+      "name": "COTIZAR_AL_POR_MAYOR"
+    },
+    {
+      "parameters": {
+        "name": "ENVIO_POR_OLVA_COURIER",
+        "description": "Llama a esta tool cuando el cliente desee que se le envíe el pedido por Olva Courier.  ",
+        "workflowId": {
+          "__rl": true,
+          "value": "Z8UWUrS1koFXcckd",
+          "mode": "list",
+          "cachedResultName": "COTIZAR_AL_POR_MAYOR"
+        },
+        "fields": {
+          "values": [
+            {
+              "name": "phone_number",
+              "stringValue": "={{ $('Webhook').item.json.body.data.key.remoteJid.replace('@s.whatsapp.net', '') }}"
+            },
+            {
+              "name": "chatwoot_host",
+              "stringValue": "={{ $('Datos de Chatwoot').item.json.chatwoot_host }}"
+            },
+            {
+              "name": "chatwoot_account_number",
+              "stringValue": "={{ $('Datos de Chatwoot').item.json.chatwoot_account_number }}"
+            },
+            {
+              "name": "chatwoot_api_access_token",
+              "stringValue": "={{ $('Datos de Chatwoot').item.json.chatwoot_api_access_token }}"
+            },
+            {
+              "name": "conversation_id",
+              "stringValue": "={{ $('Get Conversation ID').item.json.payload[0].id }}"
+            }
+          ]
+        },
+        "jsonSchemaExample": ""
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        4672,
+        720
+      ],
+      "id": "9a45b098-064f-4055-ad30-bc53e9adc5dc",
+      "name": "ENVIO_POR_OLVA_COURIER"
+    },
+    {
+      "parameters": {
+        "name": "Buscar_Prendas_Por_Nombre",
+        "description": "Llama esta tool para buscar una prenda si se conoce el nombre del modelo. Se necesita el nombre de la prenda, además de la talla de la prenda para poder activar este tool. Si no se tiene esos datos, pedirlos al cliente.",
+        "workflowId": {
+          "__rl": true,
+          "value": "RYPrtES9GNyXNtQD",
+          "mode": "list",
+          "cachedResultName": "Buscar_Prendas_Por_Nombre"
+        },
+        "fields": {
+          "values": [
+            {
+              "name": "phone_number",
+              "stringValue": "={{ $('Webhook').item.json.body.data.key.remoteJid.replace('@s.whatsapp.net', '') }}"
+            },
+            {
+              "name": "current_user_input",
+              "stringValue": "={{ $('Edit Fields').item.json.user_inputs }}"
+            },
+            {
+              "name": "chatwoot_host",
+              "stringValue": "={{ $('Datos de Chatwoot').item.json.chatwoot_host }}"
+            },
+            {
+              "name": "chatwoot_account_number",
+              "stringValue": "={{ $('Datos de Chatwoot').item.json.chatwoot_account_number }}"
+            },
+            {
+              "name": "chatwoot_api_access_token",
+              "stringValue": "={{ $('Datos de Chatwoot').item.json.chatwoot_api_access_token }}"
+            },
+            {
+              "name": "conversation_id",
+              "stringValue": "={{ $('Get Conversation ID').item.json.payload[0].id }}"
+            }
+          ]
+        },
+        "specifyInputSchema": true,
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"nombre_prenda\": {\n      \"type\": \"string\",\n      \"description\": \"Nombre de la prenda (ej. 'PIJAMA CAROLINA COLOR ENTERO')\"\n    },\n    \"talla\": {\n      \"type\": \"string\",\n      \"description\": \"Talla de la prenda (S, M, L, XL)\"\n    },\n    \"detalles_adicionales\": {\n      \"type\": \"string\",\n      \"description\": \"Detalles adicionales como color, manga corta, etc.\",\n      \"default\": \"Sin requerimientos adicionales\"\n    }\n  },\n  \"required\": [\"nombre_prenda\", \"talla\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        4160,
+        768
+      ],
+      "id": "a92e553a-8770-4725-94d0-d5fc357706f4",
+      "name": "Buscar_Prendas_Por_Nombre"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e7a5032a-7175-4b19-af0c-3ce6eb8858e8",
+              "name": "max_number_of_messages_to_get",
+              "value": 100,
+              "type": "number"
+            },
+            {
+              "id": "1a8623b8-65a1-4767-8c3f-1f37e8810ddd",
+              "name": "Database Identifier",
+              "value": "=DB_{{ $('Webhook').item.json.body.data.key.remoteJid.replace('@s.whatsapp.net', '') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        832,
+        240
+      ],
+      "id": "8436e7e6-6233-47d2-8b73-4d1734abdae4",
+      "name": "Conversation History Preferences"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Datos de Chatwoot').item.json.chatwoot_host }}/api/v1/accounts/{{ $('Datos de Chatwoot').item.json.chatwoot_account_number }}/conversations/{{ $('Get Conversation ID1').item.json.payload[0].id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Datos de Chatwoot').item.json.chatwoot_api_access_token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1888,
+        240
+      ],
+      "id": "f14ed9b0-a3d0-4518-91a3-ce8d224d3981",
+      "name": "Get Contact Conversations"
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "={{ $('Conversation History Preferences').item.json['Database Identifier'] }}",
+        "messageData": "={\n  \"type\": \"{{ $json.payload.sender.type == 'user' ? 'ai' : 'human' }}\",\n  \"data\": {\n    \"content\": {{\n      $json.payload.content && $json.payload.attachments?.length > 0\n        ? JSON.stringify($json.payload.content + ' | Archivo adjunto: ' + $json.payload.attachments[0].data_url)\n        : $json.payload.content\n          ? JSON.stringify($json.payload.content)\n          : $json.payload.attachments?.length > 0\n            ? JSON.stringify('Archivo adjunto: ' + $json.payload.attachments[0].data_url)\n            : JSON.stringify('')\n    }},\n    \"tool_calls\": [],\n    \"invalid_tool_calls\": [],\n    \"additional_kwargs\": {},\n    \"response_metadata\": {}\n  }\n}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        3088,
+        272
+      ],
+      "id": "dc4eb0e2-e0c4-4182-bf85-b945c9207054",
+      "name": "Push Messages to Chat History",
+      "credentials": {
+        "redis": {
+          "id": "BYmwd4MtF4QdF7gV",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "payload",
+        "include": "allOtherFields",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        2064,
+        240
+      ],
+      "id": "794b5f01-8d7a-468e-a063-026a90d74277",
+      "name": "Split Out1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        2320,
+        240
+      ],
+      "id": "bddf8f4a-c71e-4867-b17b-7b52ac14e554",
+      "name": "Loop Over Items1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        2848,
+        112
+      ],
+      "id": "41379636-a321-482f-9481-278ccbff6603",
+      "name": "Limit1"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $json['Database Identifier'] }}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        240
+      ],
+      "id": "ccdc6e00-00b0-4371-b839-6806c1cdac90",
+      "name": "Remove Prev Chat History",
+      "credentials": {
+        "redis": {
+          "id": "BYmwd4MtF4QdF7gV",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Dynamic Chat History From Chatwoot",
+        "height": 480,
+        "width": 2532
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        752,
+        48
+      ],
+      "typeVersion": 1,
+      "id": "826d051d-e5bc-4abc-9aee-08304ae959e0",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Datos de Chatwoot').item.json.chatwoot_host }}/api/v1/accounts/{{ $('Datos de Chatwoot').item.json.chatwoot_account_number }}/contacts/{{ $json.payload[0].id }}/conversations",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Datos de Chatwoot').item.json.chatwoot_api_access_token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1424,
+        240
+      ],
+      "id": "88c3a02b-073a-48c9-a960-d77f86cd3964",
+      "name": "Get Conversation ID1"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Datos de Chatwoot').item.json.chatwoot_host }}/api/v1/accounts/{{ $('Datos de Chatwoot').item.json.chatwoot_account_number }}/contacts/search?q={{ $('Webhook').item.json.body.data.key.remoteJid.replace('@s.whatsapp.net', '') }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Datos de Chatwoot').item.json.chatwoot_api_access_token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1248,
+        240
+      ],
+      "id": "71a5b3f1-503d-47be-a1a4-4d9c68554e58",
+      "name": "Get Contact ID1"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "e9d64cc0-a072-4a87-a370-ff06157de184",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -5296,
+        592
+      ],
+      "id": "47e4a600-ba8d-457f-a5b0-34e652c8c064",
+      "name": "Webhook",
+      "webhookId": "e9d64cc0-a072-4a87-a370-ff06157de184"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Datos de Chatwoot').item.json.chatwoot_host }}/api/v1/accounts/{{ $('Datos de Chatwoot').item.json.chatwoot_account_number }}/conversations/{{ $json.payload[0].id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Datos de Chatwoot').item.json.chatwoot_api_access_token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1472,
+        624
+      ],
+      "id": "418645fb-802d-4578-a355-fccd7fa31f0e",
+      "name": "Obtener Lista de conversaciones"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b4bf3239-5a88-4b5b-9df2-7b40049ada30",
+              "leftValue": "={{ $json.payload.slice(-1)[0]?.message_type === 1 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1680,
+        624
+      ],
+      "id": "e1a5919e-53ca-4307-be20-17b6b93fd210",
+      "name": "Personal Humano ha respondido?"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        2000,
+        608
+      ],
+      "id": "0b12bc87-ba1e-4caa-aa56-a301e8e1f1af",
+      "name": "No hacemos nada ya que ya respondieron"
+    },
+    {
+      "parameters": {
+        "content": "## Validación Humana",
+        "height": 260,
+        "width": 760
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1200,
+        592
+      ],
+      "typeVersion": 1,
+      "id": "11217460-06b7-4faf-85e9-a751ea5e8d54",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "9e1d5c5a-4365-4db0-8d6d-7f2689452b93",
+              "leftValue": "={{ $json.payload.message_type }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "7ef3c25c-a5b3-42a7-ac0c-4c6c019f2b75",
+              "leftValue": "={{ $json.payload.message_type }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2720,
+        288
+      ],
+      "id": "d4ad9f92-4501-4e35-80ce-d88fef7f2369",
+      "name": "Solo Cargar Mensajes de los clientes (0) y mios (1)"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "02965458-c4ab-471c-9a58-742082f4839b",
+              "leftValue": "={{ $('Webhook').item.json.body.data.messageType }}",
+              "rightValue": "orderMessage",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -4496,
+        560
+      ],
+      "id": "2e9f4078-b068-4794-9b5a-bc22e40a4efd",
+      "name": "Orden de Catalogo"
+    },
+    {
+      "parameters": {
+        "name": "Consultar_Alternativas",
+        "description": "Llama a esta tool cuando el cliente quiera saber si hay stock en otros colores o modelos de una prenda específica que ya se le mostró o mencionó.\nEs necesario contar con el nombre de la prenda y la talla para ejecutar esta herramienta.\nSi alguno de estos datos no está disponible, primero solicítalos al cliente antes de continuar.",
+        "workflowId": {
+          "__rl": true,
+          "value": "RYPrtES9GNyXNtQD",
+          "mode": "list",
+          "cachedResultName": "Buscar_Prendas_Por_Nombre"
+        },
+        "fields": {
+          "values": [
+            {
+              "name": "phone_number",
+              "stringValue": "={{ $('Webhook').item.json.body.data.key.remoteJid.replace('@s.whatsapp.net', '') }}"
+            },
+            {
+              "name": "current_user_input",
+              "stringValue": "={{ $('Edit Fields').item.json.user_inputs }}"
+            },
+            {
+              "name": "chatwoot_host",
+              "stringValue": "={{ $('Datos de Chatwoot').item.json.chatwoot_host }}"
+            },
+            {
+              "name": "chatwoot_account_number",
+              "stringValue": "={{ $('Datos de Chatwoot').item.json.chatwoot_account_number }}"
+            },
+            {
+              "name": "chatwoot_api_access_token",
+              "stringValue": "={{ $('Datos de Chatwoot').item.json.chatwoot_api_access_token }}"
+            },
+            {
+              "name": "conversation_id",
+              "stringValue": "={{ $('Get Conversation ID').item.json.payload[0].id }}"
+            }
+          ]
+        },
+        "specifyInputSchema": true,
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"nombre_prenda\": {\n      \"type\": \"string\",\n      \"description\": \"Nombre de la prenda (ej. 'PIJAMA CAROLINA COLOR ENTERO')\"\n    },\n    \"talla\": {\n      \"type\": \"string\",\n      \"description\": \"Talla de la prenda (S, M, L, XL)\"\n    },\n    \"detalles_adicionales\": {\n      \"type\": \"string\",\n      \"description\": \"Detalles adicionales como color, manga corta, etc.\",\n      \"default\": \"Sin requerimientos adicionales\"\n    }\n  },\n  \"required\": [\"nombre_prenda\", \"talla\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        3792,
+        800
+      ],
+      "id": "84d8c94d-e357-4f62-9469-3ce14f705f48",
+      "name": "Consultar_Alternativas"
+    },
+    {
+      "parameters": {
+        "name": "ENVIAR_METODOS_DE_PAGO",
+        "description": "Llama esta tool para enviar los métodos de pago al cliente.  ",
+        "workflowId": {
+          "__rl": true,
+          "value": "P7sL9nMxtvgs2EsN",
+          "mode": "list",
+          "cachedResultName": "ENVIAR_METODOS_DE_PAGO"
+        },
+        "fields": {
+          "values": [
+            {
+              "name": "phone_number",
+              "stringValue": "={{ $('Webhook').item.json.body.data.key.remoteJid.replace('@s.whatsapp.net', '') }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        4064,
+        992
+      ],
+      "id": "bef1d81a-c6b9-4301-92c4-4ff54f7a82d6",
+      "name": "ENVIAR_METODOS_DE_PAGO"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Get User Inputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "delete prev inputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add User Input": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get User Inputs": {
+      "main": [
+        [
+          {
+            "node": "user inputs exist?1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Agent Answer Splited",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "delete prev inputs": {
+      "main": [
+        [
+          {
+            "node": "Conversation History Preferences",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "user inputs exist?1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing8",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Text Message Evolution",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait3": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent Answer Splited": {
+      "main": [
+        [
+          {
+            "node": "Can Send Message?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is not text?": {
+      "main": [
+        [
+          {
+            "node": "Is an Audio?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reply Message?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is an Audio?": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Download Audio File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe Audio With Open AI Whisper 1": {
+      "main": [
+        [
+          {
+            "node": "Clean Text1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean Text1": {
+      "main": [
+        [
+          {
+            "node": "Add User Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean Text": {
+      "main": [
+        [
+          {
+            "node": "Add User Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If4": {
+      "main": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Add User Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Orden de Catalogo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Set processedOutput",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Postgres",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Can Send Message?": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create customer_message_status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set processedOutput": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener etiquetas actuales1": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Is not text?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Datos de Chatwoot": {
+      "main": [
+        [
+          {
+            "node": "Get Contact ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Audio File": {
+      "main": [
+        [
+          {
+            "node": "Transcribe Audio With Open AI Whisper 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create customer_message_status": {
+      "main": [
+        [
+          {
+            "node": "Can Send Message?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar_Prendas_Por_Imagen": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply Message?": {
+      "main": [
+        [
+          {
+            "node": "Clean Text",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Image Reply?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image Reply?": {
+      "main": [
+        [
+          {
+            "node": "Set Prev Messages",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Text Reply?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text Reply?": {
+      "main": [
+        [
+          {
+            "node": "Set Prev Messages1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Clean Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Prev Messages": {
+      "main": [
+        [
+          {
+            "node": "Clean Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Prev Messages1": {
+      "main": [
+        [
+          {
+            "node": "Clean Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Contact ID": {
+      "main": [
+        [
+          {
+            "node": "Get Conversation ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Conversation ID": {
+      "main": [
+        [
+          {
+            "node": "Obtener etiquetas actuales1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Text Message Evolution": {
+      "main": [
+        [
+          {
+            "node": "Wait3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "VERIFICAR_PAGO": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "COTIZAR_ENVIO": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AGENDAR_ENVIO": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Date & Time": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "COTIZAR_AL_POR_MAYOR": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ENVIO_POR_OLVA_COURIER": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar_Prendas_Por_Nombre": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conversation History Preferences": {
+      "main": [
+        [
+          {
+            "node": "Remove Prev Chat History",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Contact Conversations": {
+      "main": [
+        [
+          {
+            "node": "Split Out1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Push Messages to Chat History": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [
+          {
+            "node": "Limit1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Solo Cargar Mensajes de los clientes (0) y mios (1)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove Prev Chat History": {
+      "main": [
+        [
+          {
+            "node": "Get Contact ID1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Conversation ID1": {
+      "main": [
+        [
+          {
+            "node": "Obtener Lista de conversaciones",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Contact ID1": {
+      "main": [
+        [
+          {
+            "node": "Get Conversation ID1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit1": {
+      "main": [
+        [
+          {
+            "node": "Date & Time",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener Lista de conversaciones": {
+      "main": [
+        [
+          {
+            "node": "Personal Humano ha respondido?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Personal Humano ha respondido?": {
+      "main": [
+        [
+          {
+            "node": "No hacemos nada ya que ya respondieron",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Contact Conversations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Solo Cargar Mensajes de los clientes (0) y mios (1)": {
+      "main": [
+        [
+          {
+            "node": "Push Messages to Chat History",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Orden de Catalogo": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Datos de Chatwoot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar_Alternativas": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ENVIAR_METODOS_DE_PAGO": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "5f43daea-8e44-4eb0-a81a-a390152483ad",
+  "meta": {
+    "instanceId": "e90ea13b829bbed83cbf4787719624af4fdeea0feb562098b80751c67ed7fba9"
+  },
+  "id": "3YLOS3DUi7Bi799B",
+  "tags": [
+    {
+      "createdAt": "2025-04-05T23:59:24.315Z",
+      "updatedAt": "2025-04-05T23:59:24.315Z",
+      "id": "oSbmS0ddcjD1K6VL",
+      "name": "Wonder - Ropa"
+    }
+  ]
+}

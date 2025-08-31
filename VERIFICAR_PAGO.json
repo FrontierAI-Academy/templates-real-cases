@@ -1,0 +1,546 @@
+{
+  "name": "VERIFICAR_PAGO",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "c055762a-8fe7-4141-a639-df2372f30060",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        272,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "text": "=Si es un comprobante de pago, verifica si: \n1. El monto del comprobante sea de: {{ $('Execute Workflow Trigger').item.json.query.precio_a_pagar }}\n2. Este a nombre de: STEFANOS TEXTIL GROUP S.A.C ó Stephanie Fuentes Rivera\n\nSi cumple con los 2 criterios anteriores retorna: COMPROBANTE-VALIDO\nSi no cumple con alguno de esos requisitos retorna:  COMPROBANTE-INVALIDO\n\n#Notas\nObviamente, no tienen que estar Stephanie Fuentes Rivera tal cual, sino puede que nos den un apellido extra más, Stephanie Fuentes Rivera Jimenez, lo que el válido también. De manera similar, si solo envían el comprobante con  Stephanie Rivera también es válidodo. Esto porque eso depende porque medio se hace la transferencia. En resumen, basta con que haga relación a la persona. ",
+        "imageUrls": "={{ $('Execute Workflow Trigger').item.json.query.url_pago }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        1712,
+        352
+      ],
+      "id": "6a58ead6-eca2-4a2a-8dd3-0e03154d8b5e",
+      "name": "OpenAI2",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "openAiApi": {
+          "id": "xq0x5P93E0JAkiA4",
+          "name": "OpenAi account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validación de entrada\nif (items.length === 0 || !items[0].json.ia_url || !items[0].json.recent_urls) {\n\treturn [{\n\t\tjson: {\n\t\t\terror: 'Faltan los campos \"ia_url\" o \"recent_urls\".'\n\t\t}\n\t}];\n}\n\n// Función para calcular similitud (distancia de Levenshtein normalizada)\nfunction similarity(a, b) {\n\tconst lengthA = a.length;\n\tconst lengthB = b.length;\n\tconst dp = Array.from({ length: lengthA + 1 }, () => Array(lengthB + 1).fill(0));\n\n\tfor (let i = 0; i <= lengthA; i++) dp[i][0] = i;\n\tfor (let j = 0; j <= lengthB; j++) dp[0][j] = j;\n\n\tfor (let i = 1; i <= lengthA; i++) {\n\t\tfor (let j = 1; j <= lengthB; j++) {\n\t\t\tconst cost = a[i - 1] === b[j - 1] ? 0 : 1;\n\t\t\tdp[i][j] = Math.min(\n\t\t\t\tdp[i - 1][j] + 1,\n\t\t\t\tdp[i][j - 1] + 1,\n\t\t\t\tdp[i - 1][j - 1] + cost\n\t\t\t);\n\t\t}\n\t}\n\n\tconst distance = dp[lengthA][lengthB];\n\tconst maxLen = Math.max(lengthA, lengthB);\n\treturn 1 - distance / maxLen; // Similitud entre 0 y 1\n}\n\n// Extraer los datos\nconst aiUrl = items[0].json.ia_url;\nconst recentUrls = items[0].json.recent_urls;\n\nlet bestMatch = null;\nlet highestScore = 0;\n\n// Comparar cada URL reciente con la generada por la IA\nfor (const url of recentUrls) {\n\tconst score = similarity(aiUrl, url);\n\tif (score > highestScore) {\n\t\thighestScore = score;\n\t\tbestMatch = url;\n\t}\n}\n\n// Resultado final\nreturn [{\n\tjson: {\n\t\toriginal_url: aiUrl,\n\t\tbest_match_url: bestMatch,\n\t\tsimilarity_score: highestScore\n\t}\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1808,
+        704
+      ],
+      "id": "0943bd6d-2383-41eb-b19b-32a232a689c3",
+      "name": "Code8"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT *\nFROM chat_histories_wonder\nWHERE session_id = '{{ $(\"Execute Workflow Trigger\").item.json.phone_number }}'\nORDER BY id DESC\nLIMIT 10;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1152,
+        704
+      ],
+      "id": "e9e303ba-a71d-44be-a85e-746bedbbeb89",
+      "name": "Postgres1",
+      "credentials": {
+        "postgres": {
+          "id": "h4CZJBN40XBMGWI9",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "chat_history",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1344,
+        704
+      ],
+      "id": "508da155-7546-4fb2-baa0-fdefe38cac9c",
+      "name": "Aggregate3"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "text": "=Si es un comprobante de pago, verifica si: \n1. El monto del comprobante sea de: {{ $('Execute Workflow Trigger').item.json.query.precio_a_pagar }}\n2. Este a nombre de: STEFANOS TEXTIL GROUP S.A.C ó Stephanie Fuentes Rivera.\n\nSi cumple con los 2 criterios anteriores retorna: COMPROBANTE-VALIDO\nSi no cumple con alguno de esos requisitos retorna:  COMPROBANTE-INVALIDO",
+        "imageUrls": "={{ $json.best_match_url }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        2000,
+        704
+      ],
+      "id": "d29bb2f4-e779-45d4-a3c9-9b85c5e90ab7",
+      "name": "OpenAI3",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "openAiApi": {
+          "id": "xq0x5P93E0JAkiA4",
+          "name": "OpenAi account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6c4f62ed-056a-4912-9854-85a7f24907a8",
+              "name": "ia_url",
+              "value": "={{ $('Execute Workflow Trigger').item.json.query.url_pago }}",
+              "type": "string"
+            },
+            {
+              "id": "b5a51aec-9813-41ea-8db3-21acda04bbe5",
+              "name": "recent_urls",
+              "value": "={{ \n  [\n    ...$json.chat_history\n      .filter(m => m.message.type === \"human\")\n      .flatMap(m => m.message.content.match(/https?:\\/\\/[^\\s]+/g) || []),\n    $('Execute Workflow Trigger').item.json.current_user_input.replace(/\"/g, \"'\")\n  ]\n}}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1568,
+        704
+      ],
+      "id": "4681105a-3bf0-467b-a561-f3d339635929",
+      "name": "Urls"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "163857ea-ce5d-4e22-857a-29fb46672876",
+              "leftValue": "={{ $json.inputs }}",
+              "rightValue": "=COMPROBANTE-VALIDO",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2448,
+        320
+      ],
+      "id": "72be3612-ff35-465a-84a1-31beed2e2ab7",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "69f5eb73-a029-469f-aa3b-79e1f4c27629",
+              "name": "inputs",
+              "value": "={{ $json.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2224,
+        608
+      ],
+      "id": "3df96020-7453-4906-8299-20f544594ff5",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "69f5eb73-a029-469f-aa3b-79e1f4c27629",
+              "name": "inputs",
+              "value": "={{ $json.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2128,
+        320
+      ],
+      "id": "4dd5256c-5c01-4fdb-9091-8cc5e49f3faf",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7a2a3ee4-db34-440c-bd60-294c39704cc4",
+              "name": "response",
+              "value": "Pago realizado con éxito, Ahora necesito que me proporciones los datos para el envío, por favor:\n🔹 Nombre:\n🔹 DNI: \n🔹 Celular:\n🔹 Dirección/Destino:",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2688,
+        128
+      ],
+      "id": "0184dd55-1966-4062-a0c9-391e6342e8aa",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7a2a3ee4-db34-440c-bd60-294c39704cc4",
+              "name": "response",
+              "value": "por favor, ¿puedes volver a enviar el comprobante de pago? Tuvimos un problema al recibirlo. 😔",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2704,
+        432
+      ],
+      "id": "fdcd7578-97e1-445f-8f2c-c2a23b8d89e2",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "text": "=Si esta imagen es un comprobante de pago retorna únicamente ES-COMPROBANTE, caso contrario retorna NO-COMPROBANTE. ",
+        "imageUrls": "={{ $json.query.url_pago }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        560,
+        352
+      ],
+      "id": "45995e02-5550-434b-89b4-05b17ab54330",
+      "name": "OpenAI",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "openAiApi": {
+          "id": "xq0x5P93E0JAkiA4",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "eff2d141-27a4-4e92-a8ef-15fc86c9a43f",
+              "leftValue": "={{ $json.content }}",
+              "rightValue": "ES-COMPROBANTE",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        784,
+        352
+      ],
+      "id": "ef05b1ba-8671-42fe-b893-114cc662aa1e",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4844a093-d51b-411c-a3fb-184a0c2b6e86",
+              "name": "response",
+              "value": ".",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1152,
+        992
+      ],
+      "id": "ed828a7d-f859-4f2e-aa3e-c5f8e3c0874d",
+      "name": "Edit Fields4"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Postgres1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code8": {
+      "main": [
+        [
+          {
+            "node": "OpenAI3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate3": {
+      "main": [
+        [
+          {
+            "node": "Urls",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Urls": {
+      "main": [
+        [
+          {
+            "node": "Code8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI3": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "OpenAI2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "cc899e4b-42cc-4cdc-9cbf-a5c80059a8ce",
+  "meta": {
+    "templateId": "VMiAxXa3lCAizGB5f7dVZQSFfg3FtHkdTKvLuupqBls=",
+    "instanceId": "e90ea13b829bbed83cbf4787719624af4fdeea0feb562098b80751c67ed7fba9"
+  },
+  "id": "6OcjC6FHvFCSkMTB",
+  "tags": [
+    {
+      "createdAt": "2025-04-05T23:59:24.315Z",
+      "updatedAt": "2025-04-05T23:59:24.315Z",
+      "id": "oSbmS0ddcjD1K6VL",
+      "name": "Wonder - Ropa"
+    }
+  ]
+}
