@@ -1,0 +1,1036 @@
+{
+  "name": "Verificación de pago P12",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "bf041dd7-7c5f-4991-8056-b72f68970953",
+              "leftValue": "={{ $json.content }}",
+              "rightValue": "COMPROBANTE_VALIDO",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1500,
+        380
+      ],
+      "id": "c89ac321-b7e1-467f-89b3-a72ff8cf1779",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ebfba717-6816-4526-9262-0e39e50e898c",
+              "leftValue": "={{ $('Datos Chatwoot').item.json.image }}",
+              "rightValue": "http",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        20,
+        480
+      ],
+      "id": "ed30058c-4484-4479-b695-19007b5efbe3",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c648b2a9-40a7-4bea-99a1-0398d741b195",
+              "name": "response",
+              "value": "=👋🏼 Gracias por tu compra✨ ¡Muchas felicidades! 🎉\n\n📖🪄| Para acceder al 'Grimorio Imprimible', TOCA AQUÍ 👇\nhttps://drive.google.com/drive/folders/1SsPGC2rGJnADc1FIbbxKs93UsBkkXG4p?usp=sharing\n🎁 Ahí también están tus REGALOS.\n\nINSTRUCCIONES ‼️\nPara que no tengas ningún problema en visualizar el contenido💖\n✅Conéctate a Wifi 🛜\n✅Descarga Google Drive en caso no lo tengas en tu celular 📲\n\n\n🎁📒🪄 ¡SOPRESA! ¿Quieres una agenda de bruja con planificador de rituales, fases lunares, diario de manifestación, y muchísimo más?\n[MIRA LA IMAGEN]\n\n🫂 Estamos muy agradecidos por tu compra que acabas de hacer hace un momento, es por eso que...\n📒🪄 Quiero ofrecerte mi 'Agenda de Bruja - 2025/2026', con una gran oferta super especial 👇\n\n\n📒🪄| Agenda de Bruja - 2025/2026\nEn TOTALIDAD 49 Páginas Descargables e Imprimibles.\n----------------------------------\n📁 [Descargable en PDF]\n🖨️ [Imprimible]\n\n🟢 PRECIO: El precio regular es de S/67 soles, pero HOY PUEDES LLEVÁRTELO POR S/5 SOLES.\n📌 ¡Disponible hasta hoy 11:59pm!\n\n🛒 Para adquirirlo, paga aquí:\n 🟣👉 Yape: 993421159\n 📩 Luego mándame tu comprobante y tendrás acceso inmediato 🚀\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4660,
+        80
+      ],
+      "id": "d19fccfe-1ad1-42ea-9de4-224b593cb4d6",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1e2a8606-b5f9-43aa-bd8d-b286758f91c0",
+              "name": "response",
+              "value": "=Revisé tu pago y parece que no es válido. Te recomiendo verificar los datos y enviarme nuevamente el comprobante correcto. Estoy aquí para ayudarte. 😊",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1900,
+        460
+      ],
+      "id": "cc7e7325-19cf-4efd-907b-f42ddfd4c090",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Workflow Input Trigger').item.json.chatwoot_host }}/api/v1/accounts/{{ $('Workflow Input Trigger').item.json.chatwoot_account_number }}/conversations/{{ $('Workflow Input Trigger').item.json.conversation_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Datos Chatwoot').item.json.chatwoot_token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2320,
+        80
+      ],
+      "id": "b72fed13-6285-47a9-a94e-6016691affb1",
+      "name": "Obtener etiquetas actuales"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Workflow Input Trigger').item.json.chatwoot_host }}/api/v1/accounts/{{ $('Workflow Input Trigger').item.json.chatwoot_account_number }}/conversations/{{ $('Workflow Input Trigger').item.json.conversation_id }}/labels",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Datos Chatwoot').item.json.chatwoot_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"labels\": [{{ $('Obtener etiquetas actuales').item.json.meta.labels.map(label => `\"${label}\"`).append('\"cliente-compro-producto\"') }}]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2560,
+        80
+      ],
+      "id": "f9368495-79d0-42f7-b87f-ddb31de0d1f1",
+      "name": "Agregar etiqueta de curso de recetas saludables"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Workflow Input Trigger').item.json.chatwoot_host }}/api/v1/accounts/{{ $('Workflow Input Trigger').item.json.chatwoot_account_number }}/conversations/{{ $('Workflow Input Trigger').item.json.conversation_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Datos Chatwoot').item.json.chatwoot_token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -760,
+        460
+      ],
+      "id": "a4fe4900-788e-48b7-bf3f-4c74931d5c27",
+      "name": "Obtener etiquetas actuales1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d2666f47-6f42-4b1b-9418-98332af6d5f4",
+              "leftValue": "={{ $json.meta.labels.includes('cliente-compro-producto') }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -560,
+        460
+      ],
+      "id": "e63929f8-5cfc-4e12-bd8a-1cec6216d970",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "bf041dd7-7c5f-4991-8056-b72f68970953",
+              "leftValue": "={{ $json.content }}",
+              "rightValue": "NO-ES-UN-COMPROBANTE-DE-PAGO",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        800,
+        420
+      ],
+      "id": "3a449c98-60e6-4b01-8128-eee9f987c22d",
+      "name": "If3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8cefb5ee-9e76-407f-b3eb-fe07c1aa8796",
+              "name": "respuesta",
+              "value": "el cliente ya compro el curso",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b0b34c93-ee6b-4fa8-8e5b-7c52962fedde",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8cefb5ee-9e76-407f-b3eb-fe07c1aa8796",
+              "name": "respuesta",
+              "value": "Continua con la conversacion",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1020,
+        120
+      ],
+      "id": "b6a12278-57a7-4df2-833f-af04291e1e91",
+      "name": "Edit Fields4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8cefb5ee-9e76-407f-b3eb-fe07c1aa8796",
+              "name": "respuesta",
+              "value": "Tuvimos un problema al recibir la imagen, por favor intente de nuevo",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        320,
+        740
+      ],
+      "id": "e34ba700-f3ab-4e7d-9cb3-6bcbb6c9027b",
+      "name": "Edit Fields5"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "phoneNumber"
+            },
+            {
+              "name": "conversation_id"
+            },
+            {
+              "name": "chatwoot_host"
+            },
+            {
+              "name": "chatwoot_account_number"
+            },
+            {
+              "name": "chatwoot_api_access_token"
+            },
+            {
+              "name": "comprobante_pago"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1340,
+        460
+      ],
+      "id": "62459285-191a-41ab-ba35-8411fe7eb3a1",
+      "name": "Workflow Input Trigger"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "text": "=Quiero que compruebes este comprobante de pago que debe cumplir con los siguientes requisitos:\n\n\n2. Que aparezca el nombre de Alexandra\n2. Que el monto sea de S/10 hasta S/12.00\n\nSi se cumplen estos requisitos: retorna 'COMPROBANTE_VALIDO' y si no retorna 'COMPROBANTE_INVALIDO'\n\nRetorna únicamente una de esas dos opciones.",
+        "imageUrls": "={{ $('Datos Chatwoot').item.json.image }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        1280,
+        380
+      ],
+      "id": "72a779c9-1253-461f-a6cd-07a4b8a5ba67",
+      "name": "Analyze image",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "openAiApi": {
+          "id": "hXmaWNVVw1tofq45",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "text": "=Analiza si la imagen es un comprobante de pago o no.\nSi es un comprobante de pago, retorna 'ES-UN-COMPROBANTE-DE-PAGO'.\nSi no es un comprobante de pago, retorna 'NO-ES-UN-COMPROBANTE-DE-PAGO'.\n\nRetorna únicamente una de esas dos opciones.",
+        "imageUrls": "={{ $('Datos Chatwoot').item.json.image }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        520,
+        420
+      ],
+      "id": "baae4b64-fbc5-4380-8b4e-2a48fc5eadec",
+      "name": "Analyze image1",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "openAiApi": {
+          "id": "hXmaWNVVw1tofq45",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 30
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2800,
+        80
+      ],
+      "id": "7d05755c-fecc-4472-866b-e396d75b39a9",
+      "name": "Wait",
+      "webhookId": "b7266031-6157-4096-b4df-77295b4e78a5"
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3660,
+        80
+      ],
+      "id": "25d34bdd-36ee-4a7f-aeb2-c76f869bcb73",
+      "name": "Wait1",
+      "webhookId": "e2bd9729-9182-497d-a3b9-f29f0be061b3"
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        4060,
+        80
+      ],
+      "id": "8880bc41-95ba-4b2a-b8eb-40718122da8e",
+      "name": "Wait2",
+      "webhookId": "9ce50d7a-dc6a-43fa-858e-dc3cd618368e"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "688eb22c-d31b-4411-8642-dbd4cc8db508",
+              "name": "phoneNumber",
+              "value": "={{ $json.phoneNumber }}",
+              "type": "string"
+            },
+            {
+              "id": "476973d4-62b7-4383-b611-7ec9b0852340",
+              "name": "conversation_id",
+              "value": "={{ $json.conversation_id }}",
+              "type": "string"
+            },
+            {
+              "id": "1b428a4e-5f0d-4d57-92ff-db406d021ed1",
+              "name": "chatwoot_host",
+              "value": "={{ $json.chatwoot_host }}",
+              "type": "string"
+            },
+            {
+              "id": "87a3124f-5958-49bd-b586-db24b4b6c8e5",
+              "name": "chatwoot_account_number",
+              "value": "={{ $json.chatwoot_account_number }}",
+              "type": "string"
+            },
+            {
+              "id": "8d6fafdf-387f-4c72-9631-74e19a7a756c",
+              "name": "chatwoot_token",
+              "value": "={{ $json.chatwoot_api_access_token }}",
+              "type": "string"
+            },
+            {
+              "id": "540d2f1a-4604-4dac-92fa-8c5cdb9e194c",
+              "name": "image",
+              "value": "={{ $json.comprobante_pago }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1020,
+        460
+      ],
+      "id": "4fa725e7-8c2f-4cd0-88cd-f5af7dc2769f",
+      "name": "Datos Chatwoot"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Datos Chatwoot').first().json.chatwoot_host }}/api/v1/accounts/{{ $('Datos Chatwoot').first().json.chatwoot_account_number }}/conversations/{{ $('Datos Chatwoot').first().json.conversation_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Datos Chatwoot').first().json.chatwoot_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": \"👋🏼 Gracias por tu compra✨ ¡Muchas felicidades! 🎉\\n\\n📖🪄| Para acceder al 'Grimorio Imprimible', TOCA AQUÍ 👇\\nhttps://drive.google.com/drive/folders/1SsPGC2rGJnADc1FIbbxKs93UsBkkXG4p?usp=sharing\\n🎁 Ahí también están tus REGALOS.\\n\\nINSTRUCCIONES ‼️\\nPara que no tengas ningún problema en visualizar el contenido💖\\n✅Conéctate a Wifi 🛜\\n✅Descarga Google Drive en caso no lo tengas en tu celular 📲\",\n  \"message_type\": \"outgoing\",\n  \"content_type\": \"text\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1920,
+        80
+      ],
+      "id": "13c790cb-806b-410b-b849-8334995a452d",
+      "name": "Enviar Mensaje de Texto"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO public.customer_message_status (phonenumber, sendmessage)\nVALUES ('{{ $('Datos Chatwoot').item.json.phoneNumber }}', FALSE)\nON CONFLICT (phonenumber)\nDO UPDATE SET sendmessage = FALSE;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        2120,
+        80
+      ],
+      "id": "e5da4e19-2002-43d8-a304-17d798fb34a4",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "1BXjafmNJ5aED2hG",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Datos Chatwoot').first().json.chatwoot_host }}/api/v1/accounts/{{ $('Datos Chatwoot').first().json.chatwoot_account_number }}/conversations/{{ $('Datos Chatwoot').first().json.conversation_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Datos Chatwoot').first().json.chatwoot_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": \"🎁📒🪄 ¡SOPRESA! ¿Quieres una agenda de bruja con planificador de rituales, fases lunares, diario de manifestación, y muchísimo más?\\n\\n🫂 Estamos muy agradecidos por tu compra que acabas de hacer hace un momento, es por eso que...\\n📒🪄 Quiero ofrecerte mi 'Agenda de Bruja - 2025/2026', con una gran oferta super especial 👇\",\n  \"message_type\": \"outgoing\",\n  \"content_type\": \"text\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3040,
+        80
+      ],
+      "id": "0ecc26a9-f86b-4b8c-8c53-f84390d9a6b5",
+      "name": "Enviar Mensaje de Texto1"
+    },
+    {
+      "parameters": {
+        "url": "=https://files.catbox.moe/tx6gea.jpg",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3280,
+        80
+      ],
+      "id": "d8951796-b079-4c1e-b367-294ec7e63df1",
+      "name": "Download File1",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Datos Chatwoot').first().json.chatwoot_host }}/api/v1/accounts/{{ $('Datos Chatwoot').first().json.chatwoot_account_number }}/conversations/{{ $('Datos Chatwoot').first().json.conversation_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Datos Chatwoot').first().json.chatwoot_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message_type",
+              "value": "outgoing"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "attachments[]",
+              "inputDataFieldName": "=data"
+            },
+            {
+              "name": "content",
+              "value": "="
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3420,
+        80
+      ],
+      "id": "90e8b1cb-80cc-47a1-8741-df1a0996576c",
+      "name": "Enviar Archivos1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Datos Chatwoot').first().json.chatwoot_host }}/api/v1/accounts/{{ $('Datos Chatwoot').first().json.chatwoot_account_number }}/conversations/{{ $('Datos Chatwoot').first().json.conversation_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Datos Chatwoot').first().json.chatwoot_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": \"📒🪄| Agenda de Bruja - 2025/2026\\nEn TOTALIDAD 49 Páginas Descargables e Imprimibles.\\n----------------------------------\\n📁 [Descargable en PDF]\\n🖨️ [Imprimible]\\n\\n🟢 PRECIO: El precio regular es de S/67 soles, pero HOY PUEDES LLEVÁRTELO POR S/5 SOLES.\\n📌 ¡Disponible hasta hoy 11:59pm!\",\n  \"message_type\": \"outgoing\",\n  \"content_type\": \"text\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3860,
+        80
+      ],
+      "id": "f8046f11-56c2-4ce2-b6ad-4f9f02465bdd",
+      "name": "Enviar Mensaje de Texto2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Datos Chatwoot').first().json.chatwoot_host }}/api/v1/accounts/{{ $('Datos Chatwoot').first().json.chatwoot_account_number }}/conversations/{{ $('Datos Chatwoot').first().json.conversation_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Datos Chatwoot').first().json.chatwoot_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": \"🛒 Para adquirirlo, paga aquí:\\n🟣👉 Yape: 993421159\\n📩 Luego mándame tu comprobante y tendrás acceso inmediato 🚀\",\n  \"message_type\": \"outgoing\",\n  \"content_type\": \"text\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4260,
+        80
+      ],
+      "id": "409f9f2f-0c93-4fb7-a6a1-4747cfb5dcdc",
+      "name": "Enviar Mensaje de Texto3"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO public.customer_message_status (phonenumber, sendmessage)\nVALUES ('{{ $('Datos Chatwoot').item.json.phoneNumber }}', FALSE)\nON CONFLICT (phonenumber)\nDO UPDATE SET sendmessage = FALSE;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        4480,
+        80
+      ],
+      "id": "0cb14a6f-e0dc-41bf-a5ff-871fbdde95d2",
+      "name": "Execute a SQL query1",
+      "credentials": {
+        "postgres": {
+          "id": "1BXjafmNJ5aED2hG",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Workflow Input Trigger": [
+      {
+        "json": {
+          "phoneNumber": "+51930139286",
+          "conversation_id": 2,
+          "chatwoot_host": "https://chatwootapp.ideadigital.click",
+          "chatwoot_account_number": "3",
+          "chatwoot_api_access_token": "SSHZGV1wV7rk4J2HVCGc9HhU",
+          "comprobante_pago": "https://chatwootapp.ideadigital.click/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBBZ0U2IiwiZXhwIjpudWxsLCJwdXIiOiJibG9iX2lkIn19--63e714e1ceafdf5a7ca4e8dd023911166a5ef703/e47bfc8e9cedfbaddb46fcffe64657e8bb9b6a4aa54908abf5af2679f819ac42.jpg"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Enviar Mensaje de Texto",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Analyze image1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener etiquetas actuales": {
+      "main": [
+        [
+          {
+            "node": "Agregar etiqueta de curso de recetas saludables",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agregar etiqueta de curso de recetas saludables": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener etiquetas actuales1": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Analyze image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow Input Trigger": {
+      "main": [
+        [
+          {
+            "node": "Datos Chatwoot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze image": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze image1": {
+      "main": [
+        [
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Enviar Mensaje de Texto1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Enviar Mensaje de Texto2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait2": {
+      "main": [
+        [
+          {
+            "node": "Enviar Mensaje de Texto3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Datos Chatwoot": {
+      "main": [
+        [
+          {
+            "node": "Obtener etiquetas actuales1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Mensaje de Texto": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Obtener etiquetas actuales",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Mensaje de Texto1": {
+      "main": [
+        [
+          {
+            "node": "Download File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download File1": {
+      "main": [
+        [
+          {
+            "node": "Enviar Archivos1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Archivos1": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Mensaje de Texto2": {
+      "main": [
+        [
+          {
+            "node": "Wait2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Mensaje de Texto3": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "2490f636-ad3e-4728-a750-cbf71840e377",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e90ea13b829bbed83cbf4787719624af4fdeea0feb562098b80751c67ed7fba9"
+  },
+  "id": "6ZqB9rlAtmEbwNga",
+  "tags": [
+    {
+      "createdAt": "2025-10-12T17:44:49.022Z",
+      "updatedAt": "2025-10-12T17:44:49.022Z",
+      "id": "MrFk2pjV6R874YFZ",
+      "name": "Producto 12"
+    },
+    {
+      "createdAt": "2025-10-12T17:23:18.102Z",
+      "updatedAt": "2025-10-12T17:23:18.102Z",
+      "id": "tAY7Hh50HtuVS1o8",
+      "name": "WhatsApp 2"
+    }
+  ]
+}

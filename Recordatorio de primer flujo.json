@@ -1,0 +1,2130 @@
+{
+  "name": "Recordatorio de primer flujo Ingles",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "timezone": "America/Mexico_City"
+        }
+      },
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 2,
+      "position": [
+        896,
+        96
+      ],
+      "id": "e87c4f46-efff-40de-8502-13a978cbd616",
+      "name": "Date & Time"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bd93e343-8766-4f27-a182-ff1f4418ee38",
+              "name": "hour",
+              "value": "={{ $json.currentDate.split('T')[1].substring(0,2) }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1104,
+        96
+      ],
+      "id": "da169e82-c0cc-4a13-83b2-8373ad82b736",
+      "name": "Filter Hour"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "613a1d88-c5ab-47d4-a030-61b9f8b093ed",
+              "leftValue": "={{ $json.hour.toNumber() }}",
+              "rightValue": "={{ $('Intervalo (24 Horas)').item.json.inicio.toNumber() }}",
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            },
+            {
+              "id": "b1e3ffdb-0ee1-4c99-a2de-c31efac12851",
+              "leftValue": "={{ $json.hour.toNumber() }}",
+              "rightValue": "={{ $('Intervalo (24 Horas)').item.json.fin.toNumber() }}",
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1328,
+        96
+      ],
+      "id": "25ae661f-466b-4ef7-b48f-a711a6d9f758",
+      "name": "Intervalo de envío"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "dab90e8f-a2d3-4bfd-9a1c-cc741ca670a6",
+              "name": "tiempo_espera",
+              "value": "={{24 - $('Filter Hour').item.json.hour.toNumber() + $('Intervalo (24 Horas)').item.json.inicio.toNumber() }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1984,
+        384
+      ],
+      "id": "27f5e6b6-c12a-46e2-91e7-47fe97144b6c",
+      "name": "Tiempo de espera (Horas)"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "dab90e8f-a2d3-4bfd-9a1c-cc741ca670a6",
+              "name": "tiempo_espera",
+              "value": "={{$('Intervalo (24 Horas)').item.json.inicio.toNumber() - $('Filter Hour').item.json.hour.toNumber() }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1984,
+        672
+      ],
+      "id": "463d8096-18e4-49b2-992d-0b419f0c5cef",
+      "name": "Tiempo de espera (Horas)1"
+    },
+    {
+      "parameters": {
+        "amount": "={{ $json.tiempo_espera }}",
+        "unit": "hours"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2272,
+        544
+      ],
+      "id": "1c38f104-08f5-46b0-8cdd-7f249a15f3d2",
+      "name": "Wait",
+      "webhookId": "36d013a2-f06d-4b85-ba35-76944de9cf35"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "edea5861-d5ea-4cb5-8137-783d7c0d6eff",
+              "name": "inicio",
+              "value": "8",
+              "type": "string"
+            },
+            {
+              "id": "09508350-4a37-432d-90bb-127370ef6329",
+              "name": "fin",
+              "value": "21",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        656,
+        96
+      ],
+      "id": "a90a7753-8866-42ad-aa26-fd650fcd68c9",
+      "name": "Intervalo (24 Horas)"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a044aab7-d589-47b0-8711-867429212fb4",
+              "leftValue": "={{ $('Filter Hour').item.json.hour.toNumber() }}",
+              "rightValue": "={{ $('Intervalo (24 Horas)').item.json.inicio.toNumber() }}",
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1664,
+        560
+      ],
+      "id": "95d41a35-f843-4226-8ba2-75c4212dff30",
+      "name": "Hora Actual mayor o igual a Inicio"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "80deecff-88a8-4c81-8fce-c79bfb9a2206",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        176,
+        96
+      ],
+      "id": "e291c3be-3b0c-4b34-9224-a986cd520be2",
+      "name": "Webhook",
+      "webhookId": "80deecff-88a8-4c81-8fce-c79bfb9a2206"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Webhook').item.json.body.chatwoot_host }}/api/v1/accounts/{{ $('Webhook').item.json.body.chatwoot_account_number }}/conversations/{{ $('Webhook').item.json.body.conversation_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Webhook').item.json.body.chatwoot_api_access_token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2624,
+        80
+      ],
+      "id": "5d7b3474-3de5-439a-b199-8fc5b0b226f8",
+      "name": "Obtener etiquetas actuales"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d2666f47-6f42-4b1b-9418-98332af6d5f4",
+              "leftValue": "={{ $json.meta.labels.includes('se-envio-metodo-de-pago') }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "bc35f9c5-9e14-41c6-9c78-d4c1993c5f63",
+              "leftValue": "={{ $json.meta.labels.includes('cliente-compro-producto') }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2832,
+        80
+      ],
+      "id": "2861689a-8710-4d21-b46b-9b001798520e",
+      "name": "If"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        3120,
+        64
+      ],
+      "id": "88ba440c-e987-4c20-8c85-96c05380a02f",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Webhook').item.json.body.chatwoot_host }}/api/v1/accounts/{{ $('Webhook').item.json.body.chatwoot_account_number }}/conversations/{{ $('Webhook').item.json.body.conversation_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Webhook').item.json.body.chatwoot_api_access_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "content",
+              "value": "=Hola!, vimos que solicito información acerca del Megapack de Inglés, dígame si tiene alguna duda?, le interesa adquirirlo?"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "73c2c445-d83d-4319-9fa9-ae7870bf9b15",
+      "name": "Send Text Message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3008,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 2,
+        "unit": "hours"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        416,
+        96
+      ],
+      "id": "b489926d-4884-44ac-a155-4a97c50fc182",
+      "name": "2 hours",
+      "webhookId": "cfe6bfd0-7b9c-4ff4-b458-1d141904360e"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Webhook').item.json.body.chatwoot_host }}/api/v1/accounts/{{ $('Webhook').item.json.body.chatwoot_account_number }}/conversations/{{ $('Webhook').item.json.body.conversation_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Webhook').item.json.body.chatwoot_api_access_token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        5616,
+        240
+      ],
+      "id": "b2969f6c-7df3-4543-bc15-129affc8edf4",
+      "name": "Obtener etiquetas actuales1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d2666f47-6f42-4b1b-9418-98332af6d5f4",
+              "leftValue": "={{ $json.meta.labels.includes('se-envio-metodo-de-pago') }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "bc35f9c5-9e14-41c6-9c78-d4c1993c5f63",
+              "leftValue": "={{ $json.meta.labels.includes('cliente-compro-producto') }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        5824,
+        240
+      ],
+      "id": "8a061313-0e07-42c5-83cf-27fa1788db71",
+      "name": "If1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        6160,
+        224
+      ],
+      "id": "ff54f99e-6c28-4f15-a100-843b7b451f0f",
+      "name": "No Operation, do nothing1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Webhook').item.json.body.chatwoot_host }}/api/v1/accounts/{{ $('Webhook').item.json.body.chatwoot_account_number }}/conversations/{{ $('Webhook').item.json.body.conversation_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Webhook').item.json.body.chatwoot_api_access_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "content",
+              "value": "=👋 ¡Hola! Solo paso a recordarte que ayer solicitaste información sobre el Megapack de Inglés 📘✨.\n Quería saber si ya tuviste oportunidad de revisarlo o si tienes alguna duda 🤔.\n\n👉 Recuerda que es una oportunidad única para mejorar tu inglés con todos los recursos incluidos, y aún puedes adquirirlo hoy mismo.\n\n¿Te gustaría adquirirlo para que empieces hoy mismo a mejorar tu inglés y abrir nuevas oportunidades? 🚀"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a08d7553-1e8c-4f7d-8439-2e0dd9957709",
+      "name": "Send Text Message1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        6000,
+        464
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 24,
+        "unit": "hours"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3392,
+        256
+      ],
+      "id": "afa86d1f-53c9-4088-a369-d9c46132d1dc",
+      "name": "24 hours",
+      "webhookId": "cfe6bfd0-7b9c-4ff4-b458-1d141904360e"
+    },
+    {
+      "parameters": {
+        "options": {
+          "timezone": "America/Mexico_City"
+        }
+      },
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 2,
+      "position": [
+        3872,
+        256
+      ],
+      "id": "c3ce57c4-1459-4896-90b7-2e236af6ba60",
+      "name": "Date & Time1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bd93e343-8766-4f27-a182-ff1f4418ee38",
+              "name": "hour",
+              "value": "={{ $json.currentDate.split('T')[1].substring(0,2) }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4080,
+        256
+      ],
+      "id": "1514fef0-f793-4d0e-a3df-31bc25cb1dd4",
+      "name": "Filter Hour1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "613a1d88-c5ab-47d4-a030-61b9f8b093ed",
+              "leftValue": "={{ $json.hour.toNumber() }}",
+              "rightValue": "={{ $('Intervalo (24 Horas)1').item.json.inicio.toNumber() }}",
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            },
+            {
+              "id": "b1e3ffdb-0ee1-4c99-a2de-c31efac12851",
+              "leftValue": "={{ $json.hour.toNumber() }}",
+              "rightValue": "={{ $('Intervalo (24 Horas)1').item.json.fin.toNumber() }}",
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        4304,
+        256
+      ],
+      "id": "8adda541-f1f8-470e-ae98-a45c7d1502a3",
+      "name": "Intervalo de envío1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "dab90e8f-a2d3-4bfd-9a1c-cc741ca670a6",
+              "name": "tiempo_espera",
+              "value": "={{24 - $('Filter Hour1').item.json.hour.toNumber() + $('Intervalo (24 Horas)1').item.json.inicio.toNumber() }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4960,
+        544
+      ],
+      "id": "54e96ed9-2459-4491-887a-217233a5899a",
+      "name": "Tiempo de espera (Horas)2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "dab90e8f-a2d3-4bfd-9a1c-cc741ca670a6",
+              "name": "tiempo_espera",
+              "value": "={{$('Intervalo (24 Horas)1').item.json.inicio.toNumber() - $('Filter Hour1').item.json.hour.toNumber() }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4960,
+        832
+      ],
+      "id": "cdd75553-0bd2-4043-b9c2-1ce838a9206c",
+      "name": "Tiempo de espera (Horas)3"
+    },
+    {
+      "parameters": {
+        "amount": "={{ $json.tiempo_espera }}",
+        "unit": "hours"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        5248,
+        704
+      ],
+      "id": "8abedd6a-f458-4176-95f3-e587f60d48a4",
+      "name": "Wait1",
+      "webhookId": "36d013a2-f06d-4b85-ba35-76944de9cf35"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "edea5861-d5ea-4cb5-8137-783d7c0d6eff",
+              "name": "inicio",
+              "value": "8",
+              "type": "string"
+            },
+            {
+              "id": "09508350-4a37-432d-90bb-127370ef6329",
+              "name": "fin",
+              "value": "21",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3632,
+        256
+      ],
+      "id": "002cd570-1b60-41d6-958c-48b75ddb6653",
+      "name": "Intervalo (24 Horas)1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a044aab7-d589-47b0-8711-867429212fb4",
+              "leftValue": "={{ $('Filter Hour1').item.json.hour.toNumber() }}",
+              "rightValue": "={{ $('Intervalo (24 Horas)1').item.json.inicio.toNumber() }}",
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        4640,
+        720
+      ],
+      "id": "89879d86-2525-4f4f-b42b-7eacff5f26d4",
+      "name": "Hora Actual mayor o igual a Inicio1"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Webhook').item.json.body.chatwoot_host }}/api/v1/accounts/{{ $('Webhook').item.json.body.chatwoot_account_number }}/conversations/{{ $('Webhook').item.json.body.conversation_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Webhook').item.json.body.chatwoot_api_access_token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        8672,
+        448
+      ],
+      "id": "60ca600a-9510-4739-a70a-17abe2e754d9",
+      "name": "Obtener etiquetas actuales2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d2666f47-6f42-4b1b-9418-98332af6d5f4",
+              "leftValue": "={{ $json.meta.labels.includes('se-envio-metodo-de-pago') }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "bc35f9c5-9e14-41c6-9c78-d4c1993c5f63",
+              "leftValue": "={{ $json.meta.labels.includes('cliente-compro-producto') }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        8880,
+        448
+      ],
+      "id": "246aee87-1dcb-46fc-849b-603e6b497e61",
+      "name": "If2"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        9216,
+        432
+      ],
+      "id": "334af65f-6588-4b8d-9ce2-b63d92b576ce",
+      "name": "No Operation, do nothing2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Webhook').item.json.body.chatwoot_host }}/api/v1/accounts/{{ $('Webhook').item.json.body.chatwoot_account_number }}/conversations/{{ $('Webhook').item.json.body.conversation_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Webhook').item.json.body.chatwoot_api_access_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "content",
+              "value": "=💬 🔥 SOLO HOY: $18 de descuento → Paga solo $44 MXN en lugar de $62! 😱\n\nHola👋, te escribo personalmente porque tengo solo 2 cupos con este descuento especial. 🎉\n\nSi realmente quieres aprender inglés de manera efectiva 🇬🇧📚, esta es tu oportunidad.\n\n¿Aprovechas esta oferta exclusiva? Confírmame ahora y te paso los datos de pago. ⏳😊"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2ba09cd3-1c42-4ee0-83f8-b057a8c4e39c",
+      "name": "Send Text Message2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        9072,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 24,
+        "unit": "hours"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        6448,
+        464
+      ],
+      "id": "ccf1fef8-92ed-4007-aa89-94e918331189",
+      "name": "24 hours1",
+      "webhookId": "cfe6bfd0-7b9c-4ff4-b458-1d141904360e"
+    },
+    {
+      "parameters": {
+        "options": {
+          "timezone": "America/Mexico_City"
+        }
+      },
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 2,
+      "position": [
+        6928,
+        464
+      ],
+      "id": "4d15dfbb-571a-4cb0-82c7-5451d4ef89b1",
+      "name": "Date & Time2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bd93e343-8766-4f27-a182-ff1f4418ee38",
+              "name": "hour",
+              "value": "={{ $json.currentDate.split('T')[1].substring(0,2) }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        7136,
+        464
+      ],
+      "id": "e1a0f010-981f-4a88-a9ad-04ce498aa285",
+      "name": "Filter Hour2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "613a1d88-c5ab-47d4-a030-61b9f8b093ed",
+              "leftValue": "={{ $json.hour.toNumber() }}",
+              "rightValue": "={{ $('Intervalo (24 Horas)2').item.json.inicio.toNumber() }}",
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            },
+            {
+              "id": "b1e3ffdb-0ee1-4c99-a2de-c31efac12851",
+              "leftValue": "={{ $json.hour.toNumber() }}",
+              "rightValue": "={{ $('Intervalo (24 Horas)2').item.json.fin.toNumber() }}",
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        7360,
+        464
+      ],
+      "id": "33ec9a5f-c0a2-4ac5-82cc-1ee4d0841f88",
+      "name": "Intervalo de envío2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "dab90e8f-a2d3-4bfd-9a1c-cc741ca670a6",
+              "name": "tiempo_espera",
+              "value": "={{24 - $('Filter Hour2').item.json.hour.toNumber() + $('Intervalo (24 Horas)2').item.json.inicio.toNumber() }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        8016,
+        752
+      ],
+      "id": "2ad1b5f7-2c6f-4029-906a-cb983f0e89e0",
+      "name": "Tiempo de espera (Horas)4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "dab90e8f-a2d3-4bfd-9a1c-cc741ca670a6",
+              "name": "tiempo_espera",
+              "value": "={{$('Intervalo (24 Horas)2').item.json.inicio.toNumber() - $('Filter Hour2').item.json.hour.toNumber() }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        8016,
+        1040
+      ],
+      "id": "da6d4efd-7052-4903-8513-198778c36d6c",
+      "name": "Tiempo de espera (Horas)5"
+    },
+    {
+      "parameters": {
+        "amount": "={{ $json.tiempo_espera }}",
+        "unit": "hours"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        8304,
+        912
+      ],
+      "id": "64189787-58e7-4efd-baca-d375ab4b287d",
+      "name": "Wait2",
+      "webhookId": "36d013a2-f06d-4b85-ba35-76944de9cf35"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "edea5861-d5ea-4cb5-8137-783d7c0d6eff",
+              "name": "inicio",
+              "value": "8",
+              "type": "string"
+            },
+            {
+              "id": "09508350-4a37-432d-90bb-127370ef6329",
+              "name": "fin",
+              "value": "21",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        6688,
+        464
+      ],
+      "id": "b1896edd-b08a-4bad-b21c-e03b7796a0b3",
+      "name": "Intervalo (24 Horas)2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a044aab7-d589-47b0-8711-867429212fb4",
+              "leftValue": "={{ $('Filter Hour2').item.json.hour.toNumber() }}",
+              "rightValue": "={{ $('Intervalo (24 Horas)2').item.json.inicio.toNumber() }}",
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        7696,
+        928
+      ],
+      "id": "3db2db27-33bf-4d34-aea5-d8ee5cd351c7",
+      "name": "Hora Actual mayor o igual a Inicio2"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Webhook').item.json.body.chatwoot_host }}/api/v1/accounts/{{ $('Webhook').item.json.body.chatwoot_account_number }}/conversations/{{ $('Webhook').item.json.body.conversation_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Webhook').item.json.body.chatwoot_api_access_token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        11728,
+        656
+      ],
+      "id": "d54b9400-c269-49b6-aa53-29fc2dedbf0d",
+      "name": "Obtener etiquetas actuales3"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d2666f47-6f42-4b1b-9418-98332af6d5f4",
+              "leftValue": "={{ $json.meta.labels.includes('se-envio-metodo-de-pago') }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "bc35f9c5-9e14-41c6-9c78-d4c1993c5f63",
+              "leftValue": "={{ $json.meta.labels.includes('cliente-compro-producto') }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        11968,
+        656
+      ],
+      "id": "da441860-e3d4-4525-b3fc-7e8c7b894385",
+      "name": "If3"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        12272,
+        640
+      ],
+      "id": "9c1bfe92-45f2-4c8a-ba6a-84dfa69721a3",
+      "name": "No Operation, do nothing3"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Webhook').item.json.body.chatwoot_host }}/api/v1/accounts/{{ $('Webhook').item.json.body.chatwoot_account_number }}/conversations/{{ $('Webhook').item.json.body.conversation_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Webhook').item.json.body.chatwoot_api_access_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "content",
+              "value": "=💬 🔥 ÚLTIMA OPORTUNIDAD: SOLO HOY $18 de descuento → Paga solo $44 MXN en lugar de $62! 😱\n\nHola 👋, te escribo personalmente porque tengo solo 2 cupos con este descuento especial. 🎉\n\nSi realmente quieres aprender inglés de manera efectiva 🇬🇧📚, esta es tu oportunidad.\n\n¿Aprovechas esta oferta exclusiva?"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "748104e9-43d5-453e-b0b1-6206b06b0095",
+      "name": "Send Text Message3",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        12272,
+        880
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "timezone": "America/Mexico_City"
+        }
+      },
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 2,
+      "position": [
+        9984,
+        672
+      ],
+      "id": "701f0908-a003-49cb-81cb-5b5ec04f3da0",
+      "name": "Date & Time3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bd93e343-8766-4f27-a182-ff1f4418ee38",
+              "name": "hour",
+              "value": "={{ $json.currentDate.split('T')[1].substring(0,2) }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        10192,
+        672
+      ],
+      "id": "67e5c9a3-dbad-49fb-8c9a-36801e7bd37f",
+      "name": "Filter Hour3"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "613a1d88-c5ab-47d4-a030-61b9f8b093ed",
+              "leftValue": "={{ $json.hour.toNumber() }}",
+              "rightValue": "={{ $('Intervalo (24 Horas)3').item.json.inicio.toNumber() }}",
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            },
+            {
+              "id": "b1e3ffdb-0ee1-4c99-a2de-c31efac12851",
+              "leftValue": "={{ $json.hour.toNumber() }}",
+              "rightValue": "={{ $('Intervalo (24 Horas)3').item.json.fin.toNumber() }}",
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        10416,
+        672
+      ],
+      "id": "cff55d59-ad1f-424e-b7c6-bf5cdb7b0a06",
+      "name": "Intervalo de envío3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "dab90e8f-a2d3-4bfd-9a1c-cc741ca670a6",
+              "name": "tiempo_espera",
+              "value": "={{24 - $('Filter Hour3').item.json.hour.toNumber() + $('Intervalo (24 Horas)3').item.json.inicio.toNumber() }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        11072,
+        960
+      ],
+      "id": "570f85ec-14d7-4312-a13e-d32b800476e8",
+      "name": "Tiempo de espera (Horas)6"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "dab90e8f-a2d3-4bfd-9a1c-cc741ca670a6",
+              "name": "tiempo_espera",
+              "value": "={{$('Intervalo (24 Horas)3').item.json.inicio.toNumber() - $('Filter Hour3').item.json.hour.toNumber() }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        11072,
+        1248
+      ],
+      "id": "cc84e2f5-eda6-4a41-a901-db6eb5340829",
+      "name": "Tiempo de espera (Horas)7"
+    },
+    {
+      "parameters": {
+        "amount": "={{ $json.tiempo_espera }}",
+        "unit": "hours"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        11360,
+        1120
+      ],
+      "id": "26fc9d19-27bb-4e8f-b6bd-ddcf70fa608b",
+      "name": "Wait3",
+      "webhookId": "36d013a2-f06d-4b85-ba35-76944de9cf35"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "edea5861-d5ea-4cb5-8137-783d7c0d6eff",
+              "name": "inicio",
+              "value": "8",
+              "type": "string"
+            },
+            {
+              "id": "09508350-4a37-432d-90bb-127370ef6329",
+              "name": "fin",
+              "value": "21",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        9744,
+        672
+      ],
+      "id": "b4b769ba-d148-44a6-b9a7-737cd133e6f4",
+      "name": "Intervalo (24 Horas)3"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a044aab7-d589-47b0-8711-867429212fb4",
+              "leftValue": "={{ $('Filter Hour3').item.json.hour.toNumber() }}",
+              "rightValue": "={{ $('Intervalo (24 Horas)3').item.json.inicio.toNumber() }}",
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        10752,
+        1136
+      ],
+      "id": "c6eeeaf4-9e2e-4acb-ae74-4d85198155e2",
+      "name": "Hora Actual mayor o igual a Inicio3"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO public.n8n_chat_histories (session_id, message)\nVALUES (\n  '{{ $('Webhook').item.json.body.phoneNumber }}',\n  jsonb_build_object(\n    'type', 'ai',\n    'content', 'Hola!, vimos que solicito información acerca del Megapack de Inglés, dígame si tiene alguna duda?, le interesa adquirirlo?',\n    'additional_kwargs', '{}'::jsonb,\n    'response_metadata', '{}'::jsonb,\n    'tool_calls', '[]'::jsonb,\n    'invalid_tool_calls', '[]'::jsonb\n  )\n)\nRETURNING id;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3200,
+        256
+      ],
+      "id": "d4c38f95-8ad8-47b4-8eea-f456eb89fe34",
+      "name": "Add remarketing Message to Agent Memory",
+      "credentials": {
+        "postgres": {
+          "id": "2Kx0nZiex729FPj2",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO public.n8n_chat_histories (session_id, message)\nVALUES (\n  '{{ $('Webhook').item.json.body.phoneNumber }}',\n  jsonb_build_object(\n    'type', 'ai',\n    'content', '👋 ¡Hola! Solo paso a recordarte que ayer solicitaste información sobre el Megapack de Inglés 📘✨.  Quería saber si ya tuviste oportunidad de revisarlo o si tienes alguna duda 🤔. 👉 Recuerda que es una oportunidad única para mejorar tu inglés con todos los recursos incluidos, y aún puedes adquirirlo hoy mismo. ¿Te gustaría adquirirlo para que empieces hoy mismo a mejorar tu inglés y abrir nuevas oportunidades? 🚀',\n    'additional_kwargs', '{}'::jsonb,\n    'response_metadata', '{}'::jsonb,\n    'tool_calls', '[]'::jsonb,\n    'invalid_tool_calls', '[]'::jsonb\n  )\n)\nRETURNING id;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        6224,
+        464
+      ],
+      "id": "858d4b17-8608-46c7-a941-efcdd5c4bc38",
+      "name": "Add remarketing Message to Agent Memory1",
+      "credentials": {
+        "postgres": {
+          "id": "2Kx0nZiex729FPj2",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO public.n8n_chat_histories (session_id, message)\nVALUES (\n  '{{ $('Webhook').item.json.body.phoneNumber }}',\n  jsonb_build_object(\n    'type', 'ai',\n    'content', '💬 🔥 SOLO HOY: $18 de descuento → Paga solo $44 MXN en lugar de $62! 😱 Hola👋, te escribo personalmente porque tengo solo 2 cupos con este descuento especial. 🎉 Si realmente quieres aprender inglés de manera efectiva 🇬🇧📚, esta es tu oportunidad. ¿Aprovechas esta oferta exclusiva? Confírmame ahora y te paso los datos de pago. ⏳😊',\n    'additional_kwargs', '{}'::jsonb,\n    'response_metadata', '{}'::jsonb,\n    'tool_calls', '[]'::jsonb,\n    'invalid_tool_calls', '[]'::jsonb\n  )\n)\nRETURNING id;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        9296,
+        672
+      ],
+      "id": "57af7fde-f4ea-4b12-87bc-ab0aded39f21",
+      "name": "Add remarketing Message to Agent Memory2",
+      "credentials": {
+        "postgres": {
+          "id": "2Kx0nZiex729FPj2",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO public.n8n_chat_histories (session_id, message)\nVALUES (\n  '{{ $('Webhook').item.json.body.phoneNumber }}',\n  jsonb_build_object(\n    'type', 'ai',\n    'content', '💬 🔥 ÚLTIMA OPORTUNIDAD: SOLO HOY $18 de descuento → Paga solo $44 MXN en lugar de $62! 😱 Hola 👋, te escribo personalmente porque tengo solo 2 cupos con este descuento especial. 🎉 Si realmente quieres aprender inglés de manera efectiva 🇬🇧📚, esta es tu oportunidad. ¿Aprovechas esta oferta exclusiva?',\n    'additional_kwargs', '{}'::jsonb,\n    'response_metadata', '{}'::jsonb,\n    'tool_calls', '[]'::jsonb,\n    'invalid_tool_calls', '[]'::jsonb\n  )\n)\nRETURNING id;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        12512,
+        880
+      ],
+      "id": "30477b14-59e6-426d-8efd-ef60a9d472ef",
+      "name": "Add remarketing Message to Agent Memory3",
+      "credentials": {
+        "postgres": {
+          "id": "2Kx0nZiex729FPj2",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 48,
+        "unit": "hours"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        9504,
+        672
+      ],
+      "id": "e1e15da0-43aa-41ab-8aa2-d1a9c3938296",
+      "name": "48 hours",
+      "webhookId": "cfe6bfd0-7b9c-4ff4-b458-1d141904360e"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "n8nwebhookapp.quantiko8.com",
+            "user-agent": "axios/1.8.3",
+            "content-length": "189",
+            "accept": "application/json,text/html,application/xhtml+xml,application/xml,text/*;q=0.9, image/*;q=0.8, */*;q=0.7",
+            "accept-encoding": "gzip, compress, deflate, br",
+            "content-type": "application/json",
+            "x-forwarded-for": "10.0.0.2",
+            "x-forwarded-host": "n8nwebhookapp.quantiko8.com",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "8f8b66124c1d",
+            "x-real-ip": "10.0.0.2"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "phoneNumber": "+51930139286",
+            "conversation_id": "3",
+            "chatwoot_host": "https://chatwootapp.quantiko8.com",
+            "chatwoot_account_number": "1",
+            "chatwoot_api_access_token": "iT2UsuozegQfwHc3NVjc8F16"
+          },
+          "webhookUrl": "https://n8nwebhookapp.quantiko8.com/webhook/80deecff-88a8-4c81-8fce-c79bfb9a2206",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Date & Time": {
+      "main": [
+        [
+          {
+            "node": "Filter Hour",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Hour": {
+      "main": [
+        [
+          {
+            "node": "Intervalo de envío",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Intervalo de envío": {
+      "main": [
+        [
+          {
+            "node": "Obtener etiquetas actuales",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Hora Actual mayor o igual a Inicio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tiempo de espera (Horas)": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tiempo de espera (Horas)1": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Intervalo (24 Horas)": {
+      "main": [
+        [
+          {
+            "node": "Date & Time",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hora Actual mayor o igual a Inicio": {
+      "main": [
+        [
+          {
+            "node": "Tiempo de espera (Horas)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Tiempo de espera (Horas)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "2 hours",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener etiquetas actuales": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Text Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Obtener etiquetas actuales",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2 hours": {
+      "main": [
+        [
+          {
+            "node": "Intervalo (24 Horas)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener etiquetas actuales1": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Text Message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Text Message": {
+      "main": [
+        [
+          {
+            "node": "Add remarketing Message to Agent Memory",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "24 hours": {
+      "main": [
+        [
+          {
+            "node": "Intervalo (24 Horas)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Date & Time1": {
+      "main": [
+        [
+          {
+            "node": "Filter Hour1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Hour1": {
+      "main": [
+        [
+          {
+            "node": "Intervalo de envío1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Intervalo de envío1": {
+      "main": [
+        [
+          {
+            "node": "Obtener etiquetas actuales1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Hora Actual mayor o igual a Inicio1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tiempo de espera (Horas)2": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tiempo de espera (Horas)3": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Intervalo (24 Horas)1": {
+      "main": [
+        [
+          {
+            "node": "Date & Time1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hora Actual mayor o igual a Inicio1": {
+      "main": [
+        [
+          {
+            "node": "Tiempo de espera (Horas)2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Tiempo de espera (Horas)3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Obtener etiquetas actuales1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener etiquetas actuales2": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Text Message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "24 hours1": {
+      "main": [
+        [
+          {
+            "node": "Intervalo (24 Horas)2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Date & Time2": {
+      "main": [
+        [
+          {
+            "node": "Filter Hour2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Hour2": {
+      "main": [
+        [
+          {
+            "node": "Intervalo de envío2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Intervalo de envío2": {
+      "main": [
+        [
+          {
+            "node": "Obtener etiquetas actuales2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Hora Actual mayor o igual a Inicio2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tiempo de espera (Horas)4": {
+      "main": [
+        [
+          {
+            "node": "Wait2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tiempo de espera (Horas)5": {
+      "main": [
+        [
+          {
+            "node": "Wait2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait2": {
+      "main": [
+        [
+          {
+            "node": "Obtener etiquetas actuales2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Intervalo (24 Horas)2": {
+      "main": [
+        [
+          {
+            "node": "Date & Time2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hora Actual mayor o igual a Inicio2": {
+      "main": [
+        [
+          {
+            "node": "Tiempo de espera (Horas)4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Tiempo de espera (Horas)5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Text Message1": {
+      "main": [
+        [
+          {
+            "node": "Add remarketing Message to Agent Memory1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener etiquetas actuales3": {
+      "main": [
+        [
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Text Message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Date & Time3": {
+      "main": [
+        [
+          {
+            "node": "Filter Hour3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Hour3": {
+      "main": [
+        [
+          {
+            "node": "Intervalo de envío3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Intervalo de envío3": {
+      "main": [
+        [
+          {
+            "node": "Obtener etiquetas actuales3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Hora Actual mayor o igual a Inicio3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tiempo de espera (Horas)6": {
+      "main": [
+        [
+          {
+            "node": "Wait3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tiempo de espera (Horas)7": {
+      "main": [
+        [
+          {
+            "node": "Wait3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait3": {
+      "main": [
+        [
+          {
+            "node": "Obtener etiquetas actuales3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Intervalo (24 Horas)3": {
+      "main": [
+        [
+          {
+            "node": "Date & Time3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hora Actual mayor o igual a Inicio3": {
+      "main": [
+        [
+          {
+            "node": "Tiempo de espera (Horas)6",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Tiempo de espera (Horas)7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Text Message2": {
+      "main": [
+        [
+          {
+            "node": "Add remarketing Message to Agent Memory2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add remarketing Message to Agent Memory": {
+      "main": [
+        [
+          {
+            "node": "24 hours",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add remarketing Message to Agent Memory1": {
+      "main": [
+        [
+          {
+            "node": "24 hours1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add remarketing Message to Agent Memory2": {
+      "main": [
+        [
+          {
+            "node": "48 hours",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Text Message3": {
+      "main": [
+        [
+          {
+            "node": "Add remarketing Message to Agent Memory3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "48 hours": {
+      "main": [
+        [
+          {
+            "node": "Intervalo (24 Horas)3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "478c44b5-fbf2-4671-aed8-2212352493c6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e90ea13b829bbed83cbf4787719624af4fdeea0feb562098b80751c67ed7fba9"
+  },
+  "id": "DYb0oHZWATd2UDya",
+  "tags": [
+    {
+      "createdAt": "2025-10-04T15:57:58.031Z",
+      "updatedAt": "2025-10-04T15:57:58.031Z",
+      "id": "CxNWv9DtaQL9PldN",
+      "name": "agente-ingles"
+    }
+  ]
+}

@@ -1,0 +1,764 @@
+{
+  "name": "Primer Flujo P12",
+  "nodes": [
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        660,
+        260
+      ],
+      "id": "e39d1559-1bdf-4207-b8a8-3db79fcf15c8",
+      "name": "Wait",
+      "webhookId": "9d95848b-2e53-48c3-b676-c9094787d7a1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "40b0e43c-d5e0-4913-a719-2b81184ca35a",
+              "name": "response",
+              "value": "=Hola 👋! Mi nombre es Alexandra, y seré quien te vá a ayudar en este momento. 🙋‍♀️\n\nAhora te brindo más información del 'Grimorio Imprimible' 📖🪄\n\n📖🪄 Algo en ti te trajo hasta aquí… y no fue casualidad.\n\n✅ ADQUIERE el Grimorio Imprimible. ¿QUÉ INCLUYE? 50 Páginas en:\n🌙| Rituales lunares detallados paso a paso para cada fase.\n🧿| Hechizos de protección, abundancia y crecimiento personal.\n🌿| Hierbas sagradas, cristales y correspondencias mágicas.\n🧘‍♀️| Técnicas de limpieza energética y creación de amuletos.\n🔮| Conexión con lo invisible y prácticas de introspección mágica.\nY muchísimo más...\n-----------------------------\n📁 [Descargable en PDF]\n🖨️ [Imprimible]\n\n✅ Si compras HOY y AHORA te daré estos REGALOS:\n🎁 Guía de Velomancia: La Magia de las Velas, un Manual Sagrado.\n🎁 Hechizos de Protección.\n🎁 La Bruja Lunar: Libro de Hechizos.\n🎁 La Bruja del Hogar: Encantos para un Espacio Mágico.\n\n🟢 PRECIO: El precio regular es de S/67 soles, pero HOY PUEDES LLEVÁRTELO POR S/10 SOLES.\n📌 ¡Disponible hasta hoy 11:59pm!\n\n📖🪄 ADQUIERE el Grimorio Imprimible! [Por solo s/10 SOLES]\n\n¿CÓMO FUNCIONA?\n✅ Realiza el pago de S/10 SOLES con cualquiera de estos métodos de pago que desees 👇\n🟣 YAPE/PLIN: 993421159\n🔵 BCP:19490430186020\n⚪ CCI:00219419043018602093.\n\n😃 A nombre de: Alexandra Velasco Aguilar(Titular)\n\n✅ Envíame una foto del comprobante aquí por WhatsApp.\n✅ Y te envío el acceso inmediato al Grimorio Imprimible.\n[Único Pago | Acceso de por Vida]\n\n🎁 Si te inscribes en los próximos 10 minutos, te enviaré un REGALO SORPRESA SUPER EXCLUSIVO.\n📌 Recuerda que esta oferta se acaba hoy a las 11:59pm.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3540,
+        260
+      ],
+      "id": "ef42725a-65ba-4f32-adec-15285770989f",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Datos Chatwoot').item.json.chatwoot_host }}/api/v1/accounts/{{ $('Datos Chatwoot').item.json.chatwoot_account_number }}/conversations/{{ $('Datos Chatwoot').item.json.conversation_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Datos Chatwoot').item.json.chatwoot_token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -140,
+        160
+      ],
+      "id": "9534bce7-476f-4e1a-9371-925ac8726705",
+      "name": "Obtener etiquetas actuales"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d2666f47-6f42-4b1b-9418-98332af6d5f4",
+              "leftValue": "={{ $json.meta.labels.includes('se-envio-primer-flujo') }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        60,
+        160
+      ],
+      "id": "426efd44-662a-4016-b8be-1f84dfaba057",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "40b0e43c-d5e0-4913-a719-2b81184ca35a",
+              "name": "response",
+              "value": "=true",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        460,
+        -40
+      ],
+      "id": "a073484d-549b-4fb3-988d-f95d16d113c3",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Datos Chatwoot').item.json.chatwoot_host }}/api/v1/accounts/{{ $('Datos Chatwoot').item.json.chatwoot_account_number }}/conversations/{{ $('Datos Chatwoot').item.json.conversation_id }}/labels",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Datos Chatwoot').item.json.chatwoot_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"labels\": [{{ $('Obtener etiquetas actuales').item.json.meta.labels.map(label => `\"${label}\"`).append('\"se-envio-primer-flujo\"') }}]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3140,
+        260
+      ],
+      "id": "a04dbb8f-52f1-4b3a-b2a5-2167071fa819",
+      "name": "Agregar etiqueta"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://n8nwebhookapp.ideadigital.click/webhook/34206197-24c2-49ec-bebc-c614dfadfde0",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "=  {\n    \"phoneNumber\": \"{{ $('Execute Workflow Trigger').item.json.phoneNumber }}\",\n    \"conversation_id\": \"{{ $('Execute Workflow Trigger').item.json.conversation_id }}\",\n    \"chatwoot_host\": \"{{ $('Execute Workflow Trigger').item.json.chatwoot_host }}\",\n    \"chatwoot_account_number\": \"{{ $('Execute Workflow Trigger').item.json.chatwoot_account_number }}\",\n    \"chatwoot_api_access_token\": \"{{ $('Execute Workflow Trigger').item.json.chatwoot_api_access_token }}\"\n  }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3340,
+        260
+      ],
+      "id": "e17d2f7e-1e77-48a3-bf16-a54881c08d2f",
+      "name": "Activando recordatorio"
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1540,
+        260
+      ],
+      "id": "d5294d1f-4e5e-4cbc-9cc2-3ac7be117463",
+      "name": "Wait3",
+      "webhookId": "c079adb5-bfb9-4307-adba-f4225e61f0d1"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "phoneNumber"
+            },
+            {
+              "name": "conversation_id"
+            },
+            {
+              "name": "chatwoot_host"
+            },
+            {
+              "name": "chatwoot_account_number"
+            },
+            {
+              "name": "chatwoot_api_access_token"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -660,
+        160
+      ],
+      "id": "7429d713-ccc3-401b-a829-f3fba69697e6",
+      "name": "Execute Workflow Trigger"
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2420,
+        260
+      ],
+      "id": "807ba12d-8620-413f-b6c4-20ffc9bb5847",
+      "name": "Wait5",
+      "webhookId": "27dfd44d-b8ba-4623-8743-e2920e4070ae"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Datos Chatwoot').first().json.chatwoot_host }}/api/v1/accounts/{{ $('Datos Chatwoot').first().json.chatwoot_account_number }}/conversations/{{ $('Datos Chatwoot').first().json.conversation_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Datos Chatwoot').first().json.chatwoot_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": \"Hola 👋! Mi nombre es Alexandra, y seré quien te vá a ayudar en este momento. 🙋‍♀️\\n\\n Ahora te brindo más información del Grimorio Imprimible 📖🪄\",\n  \"message_type\": \"outgoing\",\n  \"content_type\": \"text\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        480,
+        260
+      ],
+      "id": "26a9f7be-ccb5-40c2-bd28-b97a8c65a746",
+      "name": "Enviar Mensaje de Texto"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "688eb22c-d31b-4411-8642-dbd4cc8db508",
+              "name": "phoneNumber",
+              "value": "={{ $json.phoneNumber }}",
+              "type": "string"
+            },
+            {
+              "id": "476973d4-62b7-4383-b611-7ec9b0852340",
+              "name": "conversation_id",
+              "value": "={{ $json.conversation_id }}",
+              "type": "string"
+            },
+            {
+              "id": "1b428a4e-5f0d-4d57-92ff-db406d021ed1",
+              "name": "chatwoot_host",
+              "value": "={{ $json.chatwoot_host }}",
+              "type": "string"
+            },
+            {
+              "id": "87a3124f-5958-49bd-b586-db24b4b6c8e5",
+              "name": "chatwoot_account_number",
+              "value": "={{ $json.chatwoot_account_number }}",
+              "type": "string"
+            },
+            {
+              "id": "8d6fafdf-387f-4c72-9631-74e19a7a756c",
+              "name": "chatwoot_token",
+              "value": "={{ $json.chatwoot_api_access_token }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -400,
+        160
+      ],
+      "id": "c20a829a-89d6-47ce-a567-ea24333f1583",
+      "name": "Datos Chatwoot"
+    },
+    {
+      "parameters": {
+        "url": "=https://files.catbox.moe/60ghzz.jpeg",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        260
+      ],
+      "id": "2f7f3577-ca37-407c-a4cd-5b9f5f75c233",
+      "name": "Download File",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Datos Chatwoot').first().json.chatwoot_host }}/api/v1/accounts/{{ $('Datos Chatwoot').first().json.chatwoot_account_number }}/conversations/{{ $('Datos Chatwoot').first().json.conversation_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Datos Chatwoot').first().json.chatwoot_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message_type",
+              "value": "outgoing"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "attachments[]",
+              "inputDataFieldName": "=data"
+            },
+            {
+              "name": "content",
+              "value": "="
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1020,
+        260
+      ],
+      "id": "e426bd1a-d4db-468e-b16f-9d6655871996",
+      "name": "Enviar Archivos"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Datos Chatwoot').first().json.chatwoot_host }}/api/v1/accounts/{{ $('Datos Chatwoot').first().json.chatwoot_account_number }}/conversations/{{ $('Datos Chatwoot').first().json.conversation_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Datos Chatwoot').first().json.chatwoot_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": \"📖🪄 Algo en ti te trajo hasta aquí… y no fue casualidad.\\n\\n✅ ADQUIERE el Grimorio Imprimible. ¿QUÉ INCLUYE? 50 Páginas en:\\n🌙| Rituales lunares detallados paso a paso para cada fase.\\n🧿| Hechizos de protección, abundancia y crecimiento personal.\\n🌿| Hierbas sagradas, cristales y correspondencias mágicas.\\n🧘‍♀️| Técnicas de limpieza energética y creación de amuletos.\\n🔮| Conexión con lo invisible y prácticas de introspección mágica.\\nY muchísimo más...\\n-----------------------------\\n📁 [Descargable en PDF]\\n🖨️ [Imprimible]\",\n  \"message_type\": \"outgoing\",\n  \"content_type\": \"text\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1300,
+        260
+      ],
+      "id": "f2a4ecfc-d6ff-4d3d-89f1-42bd4802a657",
+      "name": "Enviar Mensaje de Texto1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Datos Chatwoot').first().json.chatwoot_host }}/api/v1/accounts/{{ $('Datos Chatwoot').first().json.chatwoot_account_number }}/conversations/{{ $('Datos Chatwoot').first().json.conversation_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Datos Chatwoot').first().json.chatwoot_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": \"✅ Si compras HOY y AHORA te daré estos REGALOS:\\n🎁 Guía de Velomancia: La Magia de las Velas, un Manual Sagrado.\\n🎁 Hechizos de Protección.\\n🎁 La Bruja Lunar: Libro de Hechizos.\\n🎁 La Bruja del Hogar: Encantos para un Espacio Mágico.\\n\\n🟢 PRECIO: El precio regular es de S/67 soles, pero HOY PUEDES LLEVÁRTELO POR S/10 SOLES.\\n📌 ¡Disponible hasta hoy 11:59pm!\",\n  \"message_type\": \"outgoing\",\n  \"content_type\": \"text\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1760,
+        260
+      ],
+      "id": "bc419e0e-a47a-4546-80c0-14786bec6101",
+      "name": "Enviar Mensaje de Texto2"
+    },
+    {
+      "parameters": {
+        "url": "=https://files.catbox.moe/33z2t4.mp4",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2000,
+        260
+      ],
+      "id": "b2a24764-3b92-4ab3-8b36-b2aea5c5a4b5",
+      "name": "Download File1",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Datos Chatwoot').first().json.chatwoot_host }}/api/v1/accounts/{{ $('Datos Chatwoot').first().json.chatwoot_account_number }}/conversations/{{ $('Datos Chatwoot').first().json.conversation_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Datos Chatwoot').first().json.chatwoot_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message_type",
+              "value": "outgoing"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "attachments[]",
+              "inputDataFieldName": "=data"
+            },
+            {
+              "name": "content",
+              "value": "=👆 AQUÍ te envío una muestra en video de como se vé todo el contenido por dentro.\n\n¿CÓMO ADQUIRIRLO?\n✅ Realiza el pago de S/10 SOLES\n✅ Envíame una foto del comprobante aquí por WhatsApp.\n✅ Y te envío el acceso inmediato al Grimorio Imprimible."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2140,
+        260
+      ],
+      "id": "e7c91a47-5059-4508-820d-bdfd24a231a0",
+      "name": "Enviar Archivos1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Datos Chatwoot').first().json.chatwoot_host }}/api/v1/accounts/{{ $('Datos Chatwoot').first().json.chatwoot_account_number }}/conversations/{{ $('Datos Chatwoot').first().json.conversation_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $('Datos Chatwoot').first().json.chatwoot_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": \"📖🪄 ADQUIERE el Grimorio Imprimible! [Por solo s/10 SOLES]\\n\\n¿CÓMO FUNCIONA?\\n✅ Realiza el pago de S/10 SOLES con cualquiera de estos métodos de pago que desees 👇\\n🟣 YAPE/PLIN: 993421159\\n🔵 BCP:19490430186020\\n⚪ CCI:00219419043018602093.\\n\\n😃 A nombre de: Alexandra Velasco Aguilar(Titular)\\n\\n✅ Envíame una foto del comprobante aquí por WhatsApp.\\n✅ Y te envío el acceso inmediato al Grimorio Imprimible.\\n[Único Pago | Acceso de por Vida]\\n\\n🎁 Si te inscribes en los próximos 10 minutos, te enviaré un REGALO SORPRESA SUPER EXCLUSIVO.\\n📌 Recuerda que esta oferta se acaba hoy a las 11:59pm.\",\n  \"message_type\": \"outgoing\",\n  \"content_type\": \"text\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2680,
+        260
+      ],
+      "id": "32d5def4-8e45-4421-ad2f-59a7443acca6",
+      "name": "Enviar Mensaje de Texto3"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO public.customer_message_status (phonenumber, sendmessage)\nVALUES ('{{ $('Datos Chatwoot').item.json.phoneNumber }}', FALSE)\nON CONFLICT (phonenumber)\nDO UPDATE SET sendmessage = FALSE;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        2940,
+        260
+      ],
+      "id": "dc576fb3-f889-47b1-bda1-f9a669ed0194",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "1BXjafmNJ5aED2hG",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Execute Workflow Trigger": [
+      {
+        "json": {
+          "phoneNumber": "+51930139286",
+          "conversation_id": 1,
+          "chatwoot_host": "https://chatwootapp.ideadigital.click",
+          "chatwoot_account_number": "3",
+          "chatwoot_api_access_token": "SSHZGV1wV7rk4J2HVCGc9HhU"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Download File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Enviar Mensaje de Texto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener etiquetas actuales": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agregar etiqueta": {
+      "main": [
+        [
+          {
+            "node": "Activando recordatorio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Activando recordatorio": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait3": {
+      "main": [
+        [
+          {
+            "node": "Enviar Mensaje de Texto2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Datos Chatwoot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait5": {
+      "main": [
+        [
+          {
+            "node": "Enviar Mensaje de Texto3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Datos Chatwoot": {
+      "main": [
+        [
+          {
+            "node": "Obtener etiquetas actuales",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Mensaje de Texto": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download File": {
+      "main": [
+        [
+          {
+            "node": "Enviar Archivos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Archivos": {
+      "main": [
+        [
+          {
+            "node": "Enviar Mensaje de Texto1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Mensaje de Texto1": {
+      "main": [
+        [
+          {
+            "node": "Wait3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download File1": {
+      "main": [
+        [
+          {
+            "node": "Enviar Archivos1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Mensaje de Texto2": {
+      "main": [
+        [
+          {
+            "node": "Download File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Archivos1": {
+      "main": [
+        [
+          {
+            "node": "Wait5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Mensaje de Texto3": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Agregar etiqueta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0baa77c5-48a5-4b04-9e78-c2eeb49da55a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e90ea13b829bbed83cbf4787719624af4fdeea0feb562098b80751c67ed7fba9"
+  },
+  "id": "SqcxAaJA6FaXZjRG",
+  "tags": [
+    {
+      "createdAt": "2025-10-12T17:44:49.022Z",
+      "updatedAt": "2025-10-12T17:44:49.022Z",
+      "id": "MrFk2pjV6R874YFZ",
+      "name": "Producto 12"
+    },
+    {
+      "createdAt": "2025-10-12T17:23:18.102Z",
+      "updatedAt": "2025-10-12T17:23:18.102Z",
+      "id": "tAY7Hh50HtuVS1o8",
+      "name": "WhatsApp 2"
+    }
+  ]
+}
