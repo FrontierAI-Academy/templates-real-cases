@@ -1,0 +1,181 @@
+{
+  "name": "AGENDAR_ENVIO",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "nombre"
+            },
+            {
+              "name": "dni"
+            },
+            {
+              "name": "direccion_envio"
+            },
+            {
+              "name": "descripcion_envio"
+            },
+            {
+              "name": "costo_envio"
+            }
+          ]
+        }
+      },
+      "id": "c055762a-8fe7-4141-a639-df2372f30060",
+      "typeVersion": 1.1,
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        192,
+        336
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appWLbOgsXtSfhKrW",
+          "mode": "list",
+          "cachedResultName": "Pedidos Agendados",
+          "cachedResultUrl": "https://airtable.com/appWLbOgsXtSfhKrW"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblv68xLOF2Zc4j2z",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appWLbOgsXtSfhKrW/tblv68xLOF2Zc4j2z"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "nombre": "={{ $json.nombre }}",
+            "dni": "={{ $json.dni }}",
+            "direccion_envio": "={{ $json.direccion_envio }}",
+            "descripcion_envio": "={{ $json.descripcion_envio }}",
+            "costo_envio": "={{ $json.costo_envio }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "nombre",
+              "displayName": "nombre",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "dni",
+              "displayName": "dni",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "direccion_envio",
+              "displayName": "direccion_envio",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "descripcion_envio",
+              "displayName": "descripcion_envio",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "costo_envio",
+              "displayName": "costo_envio",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        432,
+        336
+      ],
+      "id": "4c895864-fb1d-4191-887d-20779004c86e",
+      "name": "Agregar Pedido en Airtable",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Zjg71Sy7GG5TOoKL",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "### Ejemplo de la tabla\n\n![Imagen](https://files.catbox.moe/9tt9vu.png)",
+        "height": 336,
+        "width": 1248
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        160,
+        -112
+      ],
+      "typeVersion": 1,
+      "id": "3a1f941b-a27b-4c1d-b461-2381fa25ff25",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Agregar Pedido en Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "417a30af-a7b2-4808-bf63-f50511009835",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "aa49186933d90113bdfc15262754ab2108c1dc3fb22f9333937d63a316a60a99"
+  },
+  "id": "cWNnDW6BZ0tUV4dl",
+  "tags": []
+}
